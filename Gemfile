@@ -22,3 +22,5 @@ end
 group :development do
   gem "web-console"
 end
+
+gem "human_enum_name", "~> 0.1.0"

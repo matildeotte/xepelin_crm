@@ -4,7 +4,7 @@ class InteractionsController < ApplicationController
     interaction = company.interactions.build(interaction_params)
 
     if interaction.save
-      redirect_to company, notice: "Interaction added."
+      redirect_to company, notice: "Interacción agregada."
     else
       redirect_to company, alert: interaction.errors.full_messages.to_sentence
     end

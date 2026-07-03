@@ -5,7 +5,6 @@ class CreateCompanies < ActiveRecord::Migration[7.1]
       t.string :legal_name, null: false
       t.string :tax_id, null: false
       t.string :sector
-      t.date :onboarded_on
       t.datetime :sii_connected_at
       t.text :notes
 

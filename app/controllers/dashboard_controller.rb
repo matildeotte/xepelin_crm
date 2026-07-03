@@ -1,7 +1,7 @@
 class DashboardController < ApplicationController
   def index
     @companies = current_user.companies.includes(:invoices, :risk_eligibilities)
-    @current_month = Date.current.beginning_of_month..Date.current.end_of_month
+    @current_month = current_day.beginning_of_month..current_day.end_of_month
 
     @portfolio_count = @companies.size
     @operating_companies = @companies.select(&:operating?)
@@ -16,22 +16,22 @@ class DashboardController < ApplicationController
     @overdue_amount = @unpaid_invoices.overdue.sum(:amount)
 
     @reactivation_opportunities = @companies
-      .select { |company| %w[reactivation_opportunity first_operation_opportunity].include?(company.activation_state) }
-      .sort_by { |company| -company.expansion_opportunity(from: Date.current.beginning_of_month, to: Date.current.end_of_month) }
+      .select { |company| company.reactivation_opportunity? || company.first_operation_opportunity? }
+      .sort_by { |company| -company.expansion_opportunity(from: @current_month.begin, to: @current_month.end) }
       .first(10)
 
     @top_financed_companies = @companies
-      .sort_by { |company| -company.financed_amount(from: Date.current.beginning_of_month, to: Date.current.end_of_month) }
+      .sort_by { |company| -company.financed_amount(from: @current_month.begin, to: @current_month.end) }
       .first(10)
 
     @low_sow_opportunities = @companies
-      .select { |company| company.sii_volume(from: Date.current.beginning_of_month, to: Date.current.end_of_month).positive? }
-      .sort_by { |company| [company.share_of_wallet(from: Date.current.beginning_of_month, to: Date.current.end_of_month), -company.expansion_opportunity(from: Date.current.beginning_of_month, to: Date.current.end_of_month)] }
+      .select { |company| company.sii_volume(from: @current_month.begin, to: @current_month.end).positive? }
+      .sort_by { |company| [company.share_of_wallet(from: @current_month.begin, to: @current_month.end), -company.expansion_opportunity(from: @current_month.begin, to: @current_month.end)] }
       .first(10)
 
     @risk_constraints = RiskEligibility
       .joins(:company)
-      .where(companies: { user_id: current_user.id }, status: %w[in_review not_eligible])
+      .where(companies: { user_id: current_user.id }, status: RiskEligibility.statuses.values_at("in_review", "not_eligible"))
       .includes(:company, :debtor)
       .order(evaluated_at: :desc)
       .first(10)

@@ -1,119 +1,118 @@
 <% month_start = @current_month_start %>
 <% month_end = @current_month_end %>
-<% health_score = @company.latest_health_score %>
 
 <div class="page-header">
   <div>
-    <p class="eyebrow">Company detail</p>
+    <p class="eyebrow">Detalle de empresa</p>
     <h1><%= @company.legal_name %></h1>
     <p class="muted">
-      <%= @company.tax_id %> · <%= @company.sector %> · Onboarded <%= @company.onboarded_on || "unknown" %>
+      <%= @company.tax_id %> · <%= @company.sector %> · Creada <%= @company.created_at.to_date %>
     </p>
   </div>
   <div>
     <%= activation_badge(@company) %>
-    <%= risk_badge(@company.latest_risk_eligibility) %>
+    <%= risk_badge(@latest_risk_eligibility) %>
   </div>
 </div>
 
 <section class="grid grid-4">
   <div class="card">
-    <div class="eyebrow">Financed this month</div>
+    <div class="eyebrow">Financiado este mes</div>
     <div class="metric-value"><%= clp_money(@company.financed_amount(from: month_start, to: month_end)) %></div>
-    <div class="metric-label">KAM core KPI</div>
+    <div class="metric-label">KPI principal del KAM</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">SII-visible volume</div>
+    <div class="eyebrow">Volumen visible en SII</div>
     <div class="metric-value"><%= clp_money(@company.sii_volume(from: month_start, to: month_end)) %></div>
-    <div class="metric-label">Invoices seen through the client's SII connection</div>
+    <div class="metric-label">Facturas vistas a través de la conexión SII del cliente</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">Share of wallet</div>
+    <div class="eyebrow">Participación de cartera (SOW)</div>
     <div class="metric-value"><%= percent_value(@company.share_of_wallet(from: month_start, to: month_end)) %></div>
-    <div class="metric-label">Xepelin financed / SII-visible volume</div>
+    <div class="metric-label">Financiado por Xepelin / volumen visible en SII</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">Expansion opportunity</div>
+    <div class="eyebrow">Oportunidad de expansión</div>
     <div class="metric-value"><%= clp_money(@company.expansion_opportunity(from: month_start, to: month_end)) %></div>
-    <div class="metric-label">Visible amount not financed this month</div>
+    <div class="metric-label">Monto visible no financiado este mes</div>
   </div>
 </section>
 
 <section class="section grid grid-3">
   <div class="card">
-    <h3>Next best action</h3>
-    <p><%= @company.next_best_action %></p>
+    <h3>Siguiente mejor acción</h3>
+    <p><%= Company.human_enum_name(:next_best_action, @company.next_best_action) %></p>
     <p class="muted">
-      Last financed operation:
-      <strong><%= @company.last_financed_on || "No financed operation yet" %></strong>
+      Última operación financiada:
+      <strong><%= @company.last_financed_on || "Sin operaciones financiadas aún" %></strong>
     </p>
   </div>
 
   <div class="card">
-    <h3>Debtor concentration</h3>
+    <h3>Concentración de pagadores</h3>
     <div class="metric-value"><%= percent_value(@company.top_debtor_concentration) %></div>
     <p class="muted">
-      Share of total visible volume concentrated in the largest debtor relationship.
+      Porcentaje del volumen visible total concentrado en la mayor relación con un pagador.
     </p>
   </div>
 
   <div class="card">
-    <h3>Collections blocker</h3>
-    <div class="metric-value"><%= clp_money(@company.overdue_financed_amount) %></div>
+    <h3>Bloqueo de cobranza</h3>
+    <div class="metric-value"><%= clp_money(@overdue_financed_amount) %></div>
     <p class="muted">
-      Collections owns recovery. KAM uses this to understand whether the client can keep operating.
+      Cobranza gestiona la recuperación. El KAM usa esto para entender si el cliente puede seguir operando.
     </p>
   </div>
 </section>
 
 <section class="section grid grid-2">
   <div class="card">
-    <h2>AI health summary</h2>
-    <% if health_score.present? %>
-      <div class="metric-value"><%= health_score.score %>/100</div>
-      <p><%= health_score.summary %></p>
-      <% if health_score.recommended_actions.present? %>
+    <h2>Resumen de salud AI</h2>
+    <% if @latest_health_score.present? %>
+      <div class="metric-value"><%= @latest_health_score.score %>/100</div>
+      <p><%= @latest_health_score.summary %></p>
+      <% if @latest_health_score.recommended_actions.present? %>
         <ul>
-          <% health_score.recommended_actions.each do |action| %>
+          <% @latest_health_score.recommended_actions.each do |action| %>
             <li><%= action %></li>
           <% end %>
         </ul>
       <% end %>
     <% else %>
       <p class="muted">
-        No health score generated yet. This is where the LLM output from Part 2 can be displayed.
+        Aún no hay resumen de salud generado. Aquí se puede mostrar la salida del LLM de la parte 2.
       </p>
     <% end %>
   </div>
 
   <div class="card">
-    <h2>KAM notes</h2>
+    <h2>Notas KAM</h2>
     <%= form_with model: @company, local: true do |form| %>
       <div class="form-row">
-        <%= form.label :notes, "Account notes" %>
+        <%= form.label :notes, "Notas de la cuenta" %>
         <%= form.text_area :notes %>
       </div>
-      <%= form.submit "Save notes" %>
+      <%= form.submit "Guardar notas" %>
     <% end %>
   </div>
 </section>
 
 <section class="section card">
-  <h2>Pricing and Risk by debtor relationship</h2>
+  <h2>Pricing y riesgo por relación con pagador</h2>
   <p class="muted">
-    Rates are defined at the company-debtor relationship level. Risk eligibility is an external output consumed by Commercial.
+    Las tasas se definen a nivel empresa-pagador. La elegibilidad de riesgos es un resultado externo consumido por Comercial.
   </p>
   <table>
     <thead>
       <tr>
-        <th>Debtor</th>
-        <th>Monthly rate</th>
-        <th>Approved limit</th>
-        <th>Risk output</th>
-        <th>Reason</th>
+        <th>Pagador</th>
+        <th>Tasa mensual</th>
+          <th>Límite aprobado</th>
+        <th>Resultado de riesgo</th>
+        <th>Motivo</th>
         <th></th>
       </tr>
     </thead>
@@ -128,13 +127,13 @@
           <td><%= percent_value(agreement.monthly_rate) %></td>
           <td><%= clp_money(agreement.approved_limit) %></td>
           <td><%= risk_badge(eligibility) %></td>
-          <td><%= eligibility&.reason || "No restriction" %></td>
-          <td><%= link_to "Debtor detail", debtor_path(agreement.debtor) %></td>
+          <td><%= eligibility&.reason || "Sin restricción" %></td>
+          <td><%= link_to "Detalle pagador", debtor_path(agreement.debtor) %></td>
         </tr>
       <% end %>
       <% if @pricing_agreements.empty? %>
         <tr>
-          <td colspan="6" class="muted">No pricing agreements for this company yet.</td>
+          <td colspan="6" class="muted">Aún no hay condiciones comerciales para esta empresa.</td>
         </tr>
       <% end %>
     </tbody>
@@ -142,21 +141,21 @@
 </section>
 
 <section class="section card">
-  <h2>Financed invoices</h2>
+  <h2>Facturas financiadas</h2>
   <p class="muted">
-    These are invoices operated through Xepelin. Payment status is useful context, but it is not the KAM's main ownership area.
+    Estas son facturas operadas por Xepelin. El estado de pago es contexto útil, pero no es la principal responsabilidad del KAM.
   </p>
   <table>
     <thead>
       <tr>
-        <th>Invoice</th>
-        <th>Debtor</th>
-        <th>Amount</th>
-        <th>Financed on</th>
-        <th>Due date</th>
-        <th>Status</th>
-        <th>Paid on</th>
-        <th>Moratory rate</th>
+        <th>Factura</th>
+        <th>Pagador</th>
+        <th>Monto</th>
+        <th>Financiada el</th>
+        <th>Vencimiento</th>
+        <th>Estado</th>
+        <th>Pagada el</th>
+        <th>Tasa moratoria</th>
       </tr>
     </thead>
     <tbody>
@@ -168,13 +167,13 @@
           <td><%= invoice.financed_on %></td>
           <td><%= invoice.due_date %></td>
           <td><%= invoice_status_badge(invoice) %></td>
-          <td><%= invoice.paid_on || "Pending" %></td>
+          <td><%= invoice.paid_on || "Pendiente" %></td>
           <td><%= percent_value(invoice.moratory_monthly_rate) %></td>
         </tr>
       <% end %>
       <% if @financed_invoices.empty? %>
         <tr>
-          <td colspan="8" class="muted">No financed invoices yet.</td>
+          <td colspan="8" class="muted">Aún no hay facturas financiadas.</td>
         </tr>
       <% end %>
     </tbody>
@@ -182,19 +181,19 @@
 </section>
 
 <section class="section card">
-  <h2>SII-visible invoices not financed by Xepelin</h2>
+  <h2>Facturas visibles en SII no financiadas por Xepelin</h2>
   <p class="muted">
-    This is the core Growth opportunity: invoices observed from the client's SII scraper that were not operated with Xepelin.
+    Esta es la oportunidad central de Growth: facturas observadas desde el scraper SII del cliente que no fueron operadas con Xepelin.
   </p>
   <table>
     <thead>
       <tr>
-        <th>Invoice</th>
-        <th>Debtor</th>
-        <th>Amount</th>
-        <th>Issue date</th>
-        <th>Due date</th>
-        <th>Suggested action</th>
+        <th>Factura</th>
+        <th>Pagador</th>
+        <th>Monto</th>
+        <th>Emisión</th>
+        <th>Vencimiento</th>
+        <th>Acción sugerida</th>
       </tr>
     </thead>
     <tbody>
@@ -208,18 +207,18 @@
           <td><%= invoice.due_date %></td>
           <td>
             <% if eligibility&.not_eligible? %>
-              Wait for Risk: <%= eligibility.reason %>
+              Esperar a riesgos: <%= eligibility.reason %>
             <% elsif eligibility&.in_review? %>
-              Follow up with Risk before pitching.
+              Hacer seguimiento con riesgos antes de ofrecer.
             <% else %>
-              Pitch financing for this debtor relationship.
+              Ofrecer financiamiento para esta relación con pagador.
             <% end %>
           </td>
         </tr>
       <% end %>
       <% if @opportunity_invoices.empty? %>
         <tr>
-          <td colspan="6" class="muted">No SII-only invoices for this company.</td>
+          <td colspan="6" class="muted">No hay facturas solo SII para esta empresa.</td>
         </tr>
       <% end %>
     </tbody>
@@ -228,41 +227,41 @@
 
 <section class="section grid grid-2">
   <div class="card">
-    <h2>Add interaction</h2>
+    <h2>Agregar interacción</h2>
     <%= form_with model: [@company, @interaction], local: true do |form| %>
       <div class="form-row">
         <%= form.label :kind %>
-        <%= form.select :kind, [["Call", "call"], ["Email", "email"], ["WhatsApp", "whatsapp"], ["Note", "note"]] %>
+        <%= form.select :kind, Interaction.kinds.keys.map { |kind| [Interaction.human_enum_name(:kind, kind), kind] } %>
       </div>
       <div class="form-row">
         <%= form.label :summary %>
-        <%= form.text_area :summary, placeholder: "Example: Discussed financing opportunity for pending SII invoices." %>
+        <%= form.text_area :summary, placeholder: "Ejemplo: se conversó una oportunidad de financiamiento para facturas SII pendientes." %>
       </div>
-      <%= form.submit "Add interaction" %>
+      <%= form.submit "Agregar interacción" %>
     <% end %>
   </div>
 
   <div class="card">
-    <h2>Recent interactions</h2>
+    <h2>Interacciones recientes</h2>
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Kind</th>
-          <th>Summary</th>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Resumen</th>
         </tr>
       </thead>
       <tbody>
         <% @interactions.each do |interaction| %>
           <tr>
             <td><%= interaction.created_at.to_date %></td>
-            <td><%= interaction.kind.humanize %></td>
+            <td><%= Interaction.human_enum_name(:kind, interaction.kind) %></td>
             <td><%= interaction.summary %></td>
           </tr>
         <% end %>
         <% if @interactions.empty? %>
           <tr>
-            <td colspan="3" class="muted">No interactions yet.</td>
+            <td colspan="3" class="muted">Aún no hay interacciones.</td>
           </tr>
         <% end %>
       </tbody>

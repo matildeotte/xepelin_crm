@@ -1,25 +1,25 @@
 <div class="page-header">
   <div>
-    <p class="eyebrow">Operational blockers</p>
-    <h1>Unpaid financed invoices</h1>
+    <p class="eyebrow">Bloqueos operacionales</p>
+    <h1>Facturas financiadas impagas</h1>
     <p class="muted">
-      These invoices are owned by Collections, but they can affect whether a client can keep operating with Xepelin.
+      Estas facturas son responsabilidad de Cobranza, pero pueden afectar si un cliente puede seguir operando con Xepelin.
     </p>
   </div>
-  <%= link_to "Back to dashboard", root_path, class: "button button-secondary" %>
+  <%= link_to "Volver al panel", root_path, class: "button button-secondary" %>
 </div>
 
 <section class="grid grid-3">
   <div class="card">
-    <div class="eyebrow">Unpaid invoices</div>
+    <div class="eyebrow">Facturas impagas</div>
     <div class="metric-value"><%= @invoices.size %></div>
   </div>
   <div class="card">
-    <div class="eyebrow">Pending amount</div>
+    <div class="eyebrow">Monto pendiente</div>
     <div class="metric-value"><%= clp_money(@invoices.where(status: "pending").sum(:amount)) %></div>
   </div>
   <div class="card">
-    <div class="eyebrow">Overdue amount</div>
+    <div class="eyebrow">Monto vencido</div>
     <div class="metric-value"><%= clp_money(@invoices.where(status: "overdue").sum(:amount)) %></div>
   </div>
 </section>
@@ -28,14 +28,14 @@
   <table>
     <thead>
       <tr>
-        <th>Company</th>
-        <th>Debtor</th>
-        <th>Invoice</th>
-        <th>Amount</th>
-        <th>Due date</th>
-        <th>Status</th>
-        <th>Days overdue</th>
-        <th>Suggested KAM action</th>
+        <th>Empresa</th>
+        <th>Pagador</th>
+        <th>Factura</th>
+        <th>Monto</th>
+        <th>Vencimiento</th>
+        <th>Estado</th>
+        <th>Días vencida</th>
+        <th>Acción sugerida para KAM</th>
       </tr>
     </thead>
     <tbody>
@@ -50,16 +50,16 @@
           <td><%= invoice.days_overdue %></td>
           <td>
             <% if invoice.overdue? %>
-              Coordinate context with Collections before pitching a new operation.
+              Coordinar contexto con Cobranza antes de ofrecer una nueva operación.
             <% else %>
-              Monitor with Collections; keep commercial cadence if Risk allows.
+              Monitorear con Cobranza; mantener cadencia comercial si riesgos lo permite.
             <% end %>
           </td>
         </tr>
       <% end %>
       <% if @invoices.empty? %>
         <tr>
-          <td colspan="8" class="muted">No unpaid financed invoices in your portfolio.</td>
+          <td colspan="8" class="muted">No hay facturas financiadas impagas en tu cartera.</td>
         </tr>
       <% end %>
     </tbody>

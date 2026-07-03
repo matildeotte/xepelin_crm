@@ -108,6 +108,8 @@ GEM
       activesupport (>= 6.1)
     hashie (5.1.0)
       logger
+    human_enum_name (0.1.0)
+      activesupport (>= 4.2.0)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     io-console (0.8.2)
@@ -308,6 +310,7 @@ DEPENDENCIES
   bootsnap
   debug
   faker
+  human_enum_name (~> 0.1.0)
   jbuilder
   omniauth-google-oauth2
   omniauth-rails_csrf_protection

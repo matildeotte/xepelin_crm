@@ -1,28 +1,28 @@
-<% month_start = Date.current.beginning_of_month %>
-<% month_end = Date.current.end_of_month %>
+<% month_start = current_day.beginning_of_month %>
+<% month_end = current_day.end_of_month %>
 
 <div class="page-header">
   <div>
-    <p class="eyebrow">Portfolio</p>
-    <h1>Assigned companies</h1>
+    <p class="eyebrow">Cartera</p>
+    <h1>Empresas asignadas</h1>
     <p class="muted">
-      Companies are prioritized by operating state and current-month financed amount.
+      Las empresas se priorizan por estado de operación y monto financiado del mes actual.
     </p>
   </div>
-  <%= link_to "Back to dashboard", root_path, class: "button button-secondary" %>
+  <%= link_to "Volver al panel", root_path, class: "button button-secondary" %>
 </div>
 
 <section class="card">
   <table>
     <thead>
       <tr>
-        <th>Company</th>
-        <th>State</th>
-        <th>Financed this month</th>
-        <th>SII volume</th>
+        <th>Empresa</th>
+        <th>Estado</th>
+        <th>Financiado este mes</th>
+        <th>Volumen SII</th>
         <th>SOW</th>
-        <th>Risk output</th>
-        <th>Next action</th>
+        <th>Resultado de riesgo</th>
+        <th>Siguiente acción</th>
         <th></th>
       </tr>
     </thead>
@@ -37,15 +37,15 @@
           <td><%= clp_money(company.financed_amount(from: month_start, to: month_end)) %></td>
           <td><%= clp_money(company.sii_volume(from: month_start, to: month_end)) %></td>
           <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
-          <td><%= risk_badge(company.latest_risk_eligibility) %></td>
-          <td><%= company.next_best_action %></td>
-          <td><%= link_to "Details", company_path(company) %></td>
+          <td><%= risk_badge(company.risk_eligibilities.company_level.order(evaluated_at: :desc).first) %></td>
+          <td><%= Company.human_enum_name(:next_best_action, company.next_best_action) %></td>
+          <td><%= link_to "Detalle", company_path(company) %></td>
         </tr>
       <% end %>
       <% if @companies.empty? %>
         <tr>
           <td colspan="8" class="muted">
-            No companies assigned to this user. Seed or assign companies to the logged-in KAM.
+            No hay empresas asignadas a este usuario. Carga seeds o asigna empresas al KAM logueado.
           </td>
         </tr>
       <% end %>

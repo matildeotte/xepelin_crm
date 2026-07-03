@@ -1,40 +1,40 @@
-<% month_start = Date.current.beginning_of_month %>
-<% month_end = Date.current.end_of_month %>
+<% month_start = current_day.beginning_of_month %>
+<% month_end = current_day.end_of_month %>
 
 <div class="page-header">
   <div>
-    <p class="eyebrow">KAM dashboard</p>
-    <h1>Your portfolio</h1>
+    <p class="eyebrow">Panel KAM</p>
+    <h1>Tu cartera</h1>
     <p class="muted">
-      Focused on clients operated, financed amount, share of wallet, and expansion opportunities from SII data.
+      Enfocado en clientes operados, monto financiado, participación de cartera y oportunidades de expansión desde datos SII.
     </p>
   </div>
-  <%= link_to "View all companies", companies_path, class: "button" %>
+  <%= link_to "Ver todas las empresas", companies_path, class: "button" %>
 </div>
 
 <section class="grid grid-4">
   <div class="card">
-    <div class="eyebrow">Operating clients</div>
+    <div class="eyebrow">Clientes operando</div>
     <div class="metric-value"><%= @operating_companies.size %>/<%= @portfolio_count %></div>
-    <div class="metric-label"><%= percent_value(@operating_rate) %> operated in the last 30 days</div>
+    <div class="metric-label"><%= percent_value(@operating_rate) %> operó en los últimos 30 días</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">Financed amount</div>
+    <div class="eyebrow">Monto financiado</div>
     <div class="metric-value"><%= clp_money(@financed_amount) %></div>
-    <div class="metric-label">Current month</div>
+    <div class="metric-label">Mes actual</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">Share of wallet</div>
+    <div class="eyebrow">Participación de cartera (SOW)</div>
     <div class="metric-value"><%= percent_value(@share_of_wallet) %></div>
-    <div class="metric-label">Financed by Xepelin / total SII-visible invoices</div>
+    <div class="metric-label">Financiado por Xepelin / total de facturas visibles en SII</div>
   </div>
 
   <div class="card">
-    <div class="eyebrow">Expansion opportunity</div>
+    <div class="eyebrow">Oportunidad de expansión</div>
     <div class="metric-value"><%= clp_money(@expansion_opportunity) %></div>
-    <div class="metric-label">SII-visible amount not financed this month</div>
+    <div class="metric-label">Monto visible en SII no financiado este mes</div>
   </div>
 </section>
 
@@ -42,9 +42,9 @@
   <div class="card">
     <div class="page-header">
       <div>
-        <h2>Reactivation opportunities</h2>
+        <h2>Oportunidades de reactivación</h2>
         <p class="muted">
-          Clients with recent SII activity but no recent Xepelin operation. This is a Growth action, not a risk status.
+          Clientes con actividad SII reciente pero sin operación Xepelin reciente. Es una acción Growth, no un estado de riesgo.
         </p>
       </div>
     </div>
@@ -52,10 +52,10 @@
     <table>
       <thead>
         <tr>
-          <th>Company</th>
-          <th>State</th>
+          <th>Empresa</th>
+          <th>Estado</th>
           <th>SOW</th>
-          <th>Opportunity</th>
+          <th>Oportunidad</th>
           <th></th>
         </tr>
       </thead>
@@ -69,12 +69,12 @@
             <td><%= activation_badge(company) %></td>
             <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
             <td><%= clp_money(company.expansion_opportunity(from: month_start, to: month_end)) %></td>
-            <td><%= link_to "Details", company_path(company) %></td>
+            <td><%= link_to "Detalle", company_path(company) %></td>
           </tr>
         <% end %>
         <% if @reactivation_opportunities.empty? %>
           <tr>
-            <td colspan="5" class="muted">No reactivation opportunities for this period.</td>
+            <td colspan="5" class="muted">No hay oportunidades de reactivación para este período.</td>
           </tr>
         <% end %>
       </tbody>
@@ -84,21 +84,21 @@
   <div class="card">
     <div class="page-header">
       <div>
-        <h2>Collection blockers</h2>
+        <h2>Bloqueos de cobranza</h2>
         <p class="muted">
-          Informational only: collections owns recovery, but overdue invoices can block future operations.
+          Solo informativo: Cobranza gestiona la recuperación, pero las facturas vencidas pueden bloquear operaciones futuras.
         </p>
       </div>
-      <%= link_to "View unpaid", invoices_unpaid_path %>
+      <%= link_to "Ver impagas", invoices_unpaid_path %>
     </div>
 
     <div class="grid grid-2">
       <div>
-        <div class="eyebrow">Unpaid invoices</div>
+        <div class="eyebrow">Facturas impagas</div>
         <div class="metric-value"><%= @unpaid_invoices.size %></div>
       </div>
       <div>
-        <div class="eyebrow">Overdue amount</div>
+        <div class="eyebrow">Monto vencido</div>
         <div class="metric-value"><%= clp_money(@overdue_amount) %></div>
       </div>
     </div>
@@ -106,10 +106,10 @@
     <table>
       <thead>
         <tr>
-          <th>Company</th>
-          <th>Debtor</th>
-          <th>Due date</th>
-          <th>Amount</th>
+          <th>Empresa</th>
+          <th>Pagador</th>
+          <th>Vencimiento</th>
+          <th>Monto</th>
         </tr>
       </thead>
       <tbody>
@@ -123,7 +123,7 @@
         <% end %>
         <% if @unpaid_invoices.empty? %>
           <tr>
-            <td colspan="4" class="muted">No unpaid financed invoices.</td>
+            <td colspan="4" class="muted">No hay facturas financiadas impagas.</td>
           </tr>
         <% end %>
       </tbody>
@@ -133,14 +133,14 @@
 
 <section class="section grid grid-2">
   <div class="card">
-    <h2>Top clients by financed amount</h2>
+    <h2>Top clientes por monto financiado</h2>
     <table>
       <thead>
         <tr>
-          <th>Company</th>
-          <th>Financed</th>
+          <th>Empresa</th>
+          <th>Financiado</th>
           <th>SOW</th>
-          <th>Next action</th>
+          <th>Siguiente acción</th>
         </tr>
       </thead>
       <tbody>
@@ -149,7 +149,7 @@
             <td><%= link_to company.legal_name, company_path(company) %></td>
             <td><%= clp_money(company.financed_amount(from: month_start, to: month_end)) %></td>
             <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
-            <td><%= company.next_best_action %></td>
+            <td><%= Company.human_enum_name(:next_best_action, company.next_best_action) %></td>
           </tr>
         <% end %>
       </tbody>
@@ -157,14 +157,14 @@
   </div>
 
   <div class="card">
-    <h2>Low SOW expansion ranking</h2>
+    <h2>Ranking de expansión con SOW bajo</h2>
     <table>
       <thead>
         <tr>
-          <th>Company</th>
+          <th>Empresa</th>
           <th>SOW</th>
-          <th>SII volume</th>
-          <th>Opportunity</th>
+          <th>Volumen SII</th>
+          <th>Oportunidad</th>
         </tr>
       </thead>
       <tbody>
@@ -182,19 +182,19 @@
 </section>
 
 <section class="section card">
-  <h2>Risk team outputs</h2>
+  <h2>Resultados del equipo de riesgos</h2>
   <p class="muted">
-    The KAM consumes these eligibility signals. Risk, Collections, and Fraud remain separate owner teams.
+    El KAM consume estas señales de elegibilidad. Riesgos, Cobranza y Fraude siguen siendo equipos responsables separados.
   </p>
   <table>
     <thead>
       <tr>
-        <th>Company</th>
-        <th>Debtor</th>
-        <th>Status</th>
-        <th>Risk type</th>
-        <th>Reason</th>
-        <th>Evaluated</th>
+        <th>Empresa</th>
+        <th>Pagador</th>
+        <th>Estado</th>
+        <th>Tipo de riesgo</th>
+        <th>Motivo</th>
+        <th>Evaluado</th>
       </tr>
     </thead>
     <tbody>
@@ -205,18 +205,18 @@
             <% if eligibility.debtor.present? %>
               <%= link_to eligibility.debtor.legal_name, debtor_path(eligibility.debtor) %>
             <% else %>
-              Company level
+              Nivel empresa
             <% end %>
           </td>
           <td><%= risk_badge(eligibility) %></td>
-          <td><%= eligibility.risk_type.humanize %></td>
+          <td><%= RiskEligibility.human_enum_name(:risk_type, eligibility.risk_type) %></td>
           <td><%= eligibility.reason %></td>
           <td><%= eligibility.evaluated_at.to_date %></td>
         </tr>
       <% end %>
       <% if @risk_constraints.empty? %>
         <tr>
-          <td colspan="6" class="muted">No eligibility constraints for this portfolio.</td>
+          <td colspan="6" class="muted">No hay restricciones de elegibilidad para esta cartera.</td>
         </tr>
       <% end %>
     </tbody>

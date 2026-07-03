@@ -3,8 +3,8 @@ class CreateRiskEligibilities < ActiveRecord::Migration[7.1]
     create_table :risk_eligibilities do |t|
       t.references :company, null: false, foreign_key: true
       t.references :debtor, null: true, foreign_key: true
-      t.string :status, null: false
-      t.string :risk_type, default: "none", null: false
+      t.integer :status, null: false
+      t.integer :risk_type, default: 3, null: false
       t.text :reason
       t.datetime :evaluated_at, null: false
 

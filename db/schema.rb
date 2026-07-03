@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_02_000010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,11 +19,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
     t.string "legal_name", null: false
     t.string "tax_id", null: false
     t.string "sector"
-    t.date "onboarded_on"
     t.datetime "sii_connected_at"
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "activation_state", default: 3, null: false
+    t.integer "next_best_action", default: 4, null: false
     t.index ["tax_id"], name: "index_companies_on_tax_id", unique: true
     t.index ["user_id"], name: "index_companies_on_user_id"
   end
@@ -40,10 +41,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
   create_table "health_scores", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.integer "score", null: false
-    t.string "churn_risk", null: false
+    t.integer "churn_risk", null: false
     t.text "summary"
     t.jsonb "recommended_actions", default: []
-    t.datetime "generated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_health_scores_on_company_id"
@@ -51,7 +51,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
 
   create_table "interactions", force: :cascade do |t|
     t.bigint "company_id", null: false
-    t.string "kind", null: false
+    t.integer "kind", null: false
     t.text "summary", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -66,11 +66,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
     t.date "issue_date", null: false
     t.date "due_date", null: false
     t.date "financed_on"
-    t.string "source", default: "sii_only", null: false
-    t.string "status", default: "pending", null: false
+    t.integer "source", default: 1, null: false
+    t.integer "status", default: 0, null: false
     t.boolean "assigned", default: false, null: false
     t.date "assignment_date"
-    t.string "debtor_response_status", default: "pending", null: false
+    t.integer "debtor_response_status", default: 0, null: false
     t.string "rejection_reason"
     t.decimal "moratory_monthly_rate", precision: 5, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
@@ -110,8 +110,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000009) do
   create_table "risk_eligibilities", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.bigint "debtor_id"
-    t.string "status", null: false
-    t.string "risk_type", default: "none", null: false
+    t.integer "status", null: false
+    t.integer "risk_type", default: 3, null: false
     t.text "reason"
     t.datetime "evaluated_at", null: false
     t.datetime "created_at", null: false

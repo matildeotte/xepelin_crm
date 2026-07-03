@@ -8,6 +8,11 @@ class Company < ApplicationRecord
   has_many :risk_eligibilities, dependent: :destroy
   has_many :debtors, -> { distinct }, through: :invoices
 
+  enum :activation_state, %i[operating reactivation_opportunity first_operation_opportunity low_signal]
+  enum :next_best_action, %i[review_risk reactivate first_operation expand_wallet_share maintain_cadence]
+
+  before_validation :assign_commercial_state
+
   validates :legal_name, :tax_id, presence: true
   validates :tax_id, uniqueness: true
 
@@ -48,43 +53,6 @@ class Company < ApplicationRecord
     financed_invoices.maximum(:financed_on)
   end
 
-  def operating?(days: 30)
-    last_financed_on.present? && last_financed_on >= days.days.ago.to_date
-  end
-
-  def recent_sii_activity?(days: 30)
-    invoices.where(issue_date: days.days.ago.to_date..Date.current).exists?
-  end
-
-  def activation_state
-    return "operating" if operating?
-    return "reactivation_opportunity" if last_financed_on.present? && recent_sii_activity?
-    return "first_operation_opportunity" if last_financed_on.blank? && recent_sii_activity?
-
-    "low_signal"
-  end
-
-  def activation_label
-    {
-      "operating" => "Operating",
-      "reactivation_opportunity" => "Reactivate",
-      "first_operation_opportunity" => "First operation",
-      "low_signal" => "Low signal"
-    }.fetch(activation_state)
-  end
-
-  def latest_health_score
-    health_scores.order(generated_at: :desc).first
-  end
-
-  def latest_risk_eligibility
-    risk_eligibilities.company_level.order(evaluated_at: :desc).first
-  end
-
-  def overdue_financed_amount
-    financed_invoices.overdue.sum(:amount)
-  end
-
   def top_debtor_concentration
     total = invoices.sum(:amount)
     return 0 if total.zero?
@@ -93,12 +61,40 @@ class Company < ApplicationRecord
     (top_debtor_amount.to_f / total * 100).round(1)
   end
 
-  def next_best_action
-    return "Review Risk output before pitching new operations" if latest_risk_eligibility&.not_eligible?
-    return "Call to reactivate: recent SII activity with no recent Xepelin operation" if activation_state == "reactivation_opportunity"
-    return "Pitch first Xepelin operation using recent SII invoices" if activation_state == "first_operation_opportunity"
-    return "Expand wallet share: prioritize eligible debtor relationships" if share_of_wallet < 35
+  def refresh_commercial_state!
+    assign_commercial_state
+    save!
+  end
 
-    "Maintain cadence and look for larger financed operations"
+  private
+
+  def assign_commercial_state
+    self.activation_state = calculated_activation_state
+    self.next_best_action = calculated_next_best_action
+  end
+
+  def calculated_activation_state
+    return :operating if operated_recently?
+    return :reactivation_opportunity if last_financed_on.present? && recent_sii_activity?
+    return :first_operation_opportunity if last_financed_on.blank? && recent_sii_activity?
+
+    :low_signal
+  end
+
+  def calculated_next_best_action
+    return :review_risk if risk_eligibilities.company_level.order(evaluated_at: :desc).first&.not_eligible?
+    return :reactivate if reactivation_opportunity?
+    return :first_operation if first_operation_opportunity?
+    return :expand_wallet_share if share_of_wallet < 35
+
+    :maintain_cadence
+  end
+
+  def operated_recently?(days: 30)
+    last_financed_on.present? && last_financed_on >= days.days.ago.to_date
+  end
+
+  def recent_sii_activity?(days: 30)
+    invoices.where(issue_date: days.days.ago.to_date..Date.current).exists?
   end
 end

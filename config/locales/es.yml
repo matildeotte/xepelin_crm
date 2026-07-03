@@ -1,0 +1,82 @@
+es:
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: "no puede estar en blanco"
+      taken: "ya esta en uso"
+      inclusion: "no esta incluido en la lista"
+      not_a_number: "no es un número"
+      greater_than_or_equal_to: "debe ser mayor o igual a %{count}"
+      less_than_or_equal_to: "debe ser menor o igual a %{count}"
+  activerecord:
+    models:
+      company: "Empresa"
+      debtor: "Pagador"
+      health_score: "Resumen de salud"
+      interaction: "Interacción"
+      invoice: "Factura"
+      pricing_agreement: "Condición comercial"
+      risk_eligibility: "Evaluación de riesgo"
+      user: "Usuario"
+    attributes:
+      company:
+        legal_name: "Razón social"
+        tax_id: "RUT"
+        notes: "Notas"
+        activation_states:
+          operating: "Operando"
+          reactivation_opportunity: "Reactivar"
+          first_operation_opportunity: "Primera operación"
+          low_signal: "Baja señal"
+        next_best_actions:
+          review_risk: "Revisar resultado de Riesgo antes de ofrecer nuevas operaciones"
+          reactivate: "Contactar para reactivar: actividad SII reciente sin operación reciente con Xepelin"
+          first_operation: "Ofrecer primera operación con Xepelin usando facturas SII recientes"
+          expand_wallet_share: "Expandir participación de cartera: priorizar relaciones con pagadores elegibles"
+          maintain_cadence: "Mantener cadencia y buscar operaciones de mayor tamaño"
+      debtor:
+        payment_probabilities:
+          no_history: "Sin historial"
+          high: "Alta"
+          medium: "Media"
+          low: "Baja"
+      health_score:
+        churn_risks:
+          low: "Bajo"
+          medium: "Medio"
+          high: "Alto"
+      interaction:
+        kind: "Tipo"
+        summary: "Resumen"
+        kinds:
+          email: "Correo"
+          whatsapp: "WhatsApp"
+          call: "Llamada"
+          video_call: "Videollamada"
+          in_person_meeting: "Reunión presencial"
+          note: "Nota"
+          follow_up: "Seguimiento"
+          risk_review: "Revisión de riesgo"
+          pricing_review: "Revisión de pricing"
+      invoice:
+        statuses:
+          pending: "Pendiente"
+          paid: "Pagada"
+          overdue: "Vencida"
+        sources:
+          xepelin: "Xepelin"
+          sii_only: "Solo SII"
+        debtor_response_statuses:
+          pending: "Pendiente"
+          accepted: "Aceptada"
+          rejected: "Rechazada"
+      risk_eligibility:
+        statuses:
+          eligible: "Elegible"
+          in_review: "En revisión"
+          not_eligible: "No elegible"
+        risk_types:
+          credit: "Crédito"
+          operational: "Operacional"
+          fraud: "Fraude"
+          none: "Sin riesgo"

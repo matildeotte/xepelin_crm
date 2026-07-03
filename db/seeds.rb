@@ -29,7 +29,7 @@ secondary_kam = User.create!(
   avatar_url: nil
 )
 
-sectors = ["Food", "Construction", "Logistics", "Retail", "Healthcare", "Manufacturing", "Technology"]
+sectors = ["Alimentos", "Construcción", "Logística", "Retail", "Salud", "Manufactura", "Tecnología"]
 
 debtors = 12.times.map do |index|
   Debtor.create!(
@@ -52,15 +52,22 @@ profiles = [
   :collection_blocker
 ]
 
+profile_labels = {
+  operating_high_sow: "operando con SOW alto",
+  operating_low_sow: "operando con SOW bajo",
+  reactivation: "oportunidad de reactivación",
+  first_operation: "oportunidad de primera operación",
+  collection_blocker: "bloqueo por cobranza"
+}
+
 companies = profiles.each_with_index.map do |profile, index|
   company = Company.create!(
     user: primary_kam,
     legal_name: "#{Faker::Company.name} Ltda",
     tax_id: tax_id(index + 1),
     sector: sectors.sample,
-    onboarded_on: rand(60..900).days.ago.to_date,
     sii_connected_at: rand(20..500).days.ago,
-    notes: "Seeded account with #{profile.to_s.humanize.downcase} behavior."
+    notes: "Cuenta demo con comportamiento #{profile_labels.fetch(profile)}."
   )
 
   company_debtors = debtors.sample(3)
@@ -69,7 +76,7 @@ companies = profiles.each_with_index.map do |profile, index|
     company: company,
     status: ["eligible", "eligible", "eligible", "in_review", "not_eligible"].sample,
     risk_type: ["none", "none", "credit", "operational"].sample,
-    reason: "Company-level Risk output for commercial planning.",
+    reason: "Resultado de riesgos a nivel empresa para planificación comercial.",
     evaluated_at: rand(1..12).days.ago
   )
 
@@ -87,7 +94,7 @@ companies = profiles.each_with_index.map do |profile, index|
       debtor: debtor,
       status: ["eligible", "eligible", "eligible", "in_review", "not_eligible"].sample,
       risk_type: ["none", "none", "credit", "fraud", "operational"].sample,
-      reason: "Relationship-level eligibility from Risk team.",
+      reason: "Elegibilidad a nivel relación entregada por el equipo de riesgos.",
       evaluated_at: rand(1..12).days.ago
     )
   end
@@ -184,19 +191,18 @@ companies = profiles.each_with_index.map do |profile, index|
     company: company,
     score: rand(45..92),
     churn_risk: ["low", "medium", "high"].sample,
-    summary: "Client has visible SII activity. Prioritize conversations based on SOW, eligible debtor relationships, and recent operating cadence.",
+    summary: "El cliente tiene actividad visible en SII. Priorizar conversaciones según SOW, relaciones con pagadores elegibles y cadencia operativa reciente.",
     recommended_actions: [
-      "Review SII-only invoices with eligible debtor relationships.",
-      "Contact decision maker with a concrete financing opportunity.",
-      "Check Risk output before pitching invoices tied to reviewed debtors."
-    ],
-    generated_at: rand(1..5).days.ago
+      "Revisar facturas solo SII con relaciones de pagadores elegibles.",
+      "Contactar al decisor con una oportunidad concreta de financiamiento.",
+      "Revisar resultado de riesgos antes de ofrecer facturas asociadas a pagadores revisados."
+    ]
   )
 
   Interaction.create!(
     company: company,
-    kind: ["call", "email", "whatsapp"].sample,
-    summary: "Discussed monthly operating plan and potential invoices to finance.",
+    kind: Interaction.kinds.keys.sample,
+    summary: "Se conversó el plan operativo mensual y posibles facturas a financiar.",
     created_at: rand(1..20).days.ago
   )
 
@@ -209,7 +215,6 @@ end
     legal_name: "#{Faker::Company.name} SpA",
     tax_id: tax_id(index + 50),
     sector: sectors.sample,
-    onboarded_on: rand(100..700).days.ago.to_date,
     sii_connected_at: rand(50..400).days.ago
   )
 

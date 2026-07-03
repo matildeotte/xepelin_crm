@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  helper_method :current_user
+  helper_method :current_user, :current_day
 
   before_action :require_login
 
@@ -7,6 +7,10 @@ class ApplicationController < ActionController::Base
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id])
+  end
+
+  def current_day
+    @current_day ||= Time.find_zone!("America/Santiago").today
   end
 
   def require_login

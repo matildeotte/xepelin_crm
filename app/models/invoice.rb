@@ -3,35 +3,22 @@ class Invoice < ApplicationRecord
   belongs_to :debtor
   has_many :payments, dependent: :destroy
 
-  SOURCES = %w[xepelin sii_only].freeze
-  STATUSES = %w[pending paid overdue].freeze
-  DEBTOR_RESPONSE_STATUSES = %w[pending accepted rejected].freeze
+  after_commit :refresh_company_commercial_state
+
+  enum :source, %i[xepelin sii_only]
+  enum :status, %i[pending paid overdue]
+  enum :debtor_response_status, %i[pending accepted rejected], prefix: :debtor_response
 
   validates :invoice_number, :amount, :issue_date, :due_date, :source, :status, presence: true
-  validates :source, inclusion: { in: SOURCES }
-  validates :status, inclusion: { in: STATUSES }
-  validates :debtor_response_status, inclusion: { in: DEBTOR_RESPONSE_STATUSES }
+  validates :source, inclusion: { in: sources.keys }
+  validates :status, inclusion: { in: statuses.keys }
+  validates :debtor_response_status, inclusion: { in: debtor_response_statuses.keys }
 
-  scope :xepelin, -> { where(source: "xepelin") }
-  scope :sii_only, -> { where(source: "sii_only") }
-  scope :unpaid, -> { where(status: %w[pending overdue]) }
-  scope :overdue, -> { where(status: "overdue") }
-  scope :due_soon, ->(days = 7) { where(status: "pending", due_date: Date.current..(Date.current + days.days)) }
+  scope :unpaid, -> { where(status: statuses.values_at("pending", "overdue")) }
+  scope :due_soon, ->(days = 7) { pending.where(due_date: Date.current..(Date.current + days.days)) }
 
   def financed?
-    source == "xepelin"
-  end
-
-  def paid?
-    status == "paid"
-  end
-
-  def pending?
-    status == "pending"
-  end
-
-  def overdue?
-    status == "overdue"
+    xepelin?
   end
 
   def paid_on
@@ -39,7 +26,7 @@ class Invoice < ApplicationRecord
   end
 
   def paid_on_time?
-    status == "paid" && paid_on.present? && paid_on <= due_date
+    paid? && paid_on.present? && paid_on <= due_date
   end
 
   def days_overdue
@@ -50,5 +37,11 @@ class Invoice < ApplicationRecord
 
   def collection_blocker?
     financed? && overdue?
+  end
+
+  private
+
+  def refresh_company_commercial_state
+    company.refresh_commercial_state! if company&.persisted? && !company.destroyed?
   end
 end

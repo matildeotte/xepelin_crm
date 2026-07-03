@@ -8,11 +8,11 @@ class CreateInvoices < ActiveRecord::Migration[7.1]
       t.date :issue_date, null: false
       t.date :due_date, null: false
       t.date :financed_on
-      t.string :source, default: "sii_only", null: false
-      t.string :status, default: "pending", null: false
+      t.integer :source, default: 1, null: false
+      t.integer :status, default: 0, null: false
       t.boolean :assigned, default: false, null: false
       t.date :assignment_date
-      t.string :debtor_response_status, default: "pending", null: false
+      t.integer :debtor_response_status, default: 0, null: false
       t.string :rejection_reason
       t.decimal :moratory_monthly_rate, precision: 5, scale: 2, default: 0, null: false
 

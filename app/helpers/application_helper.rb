@@ -12,35 +12,49 @@ module ApplicationHelper
   end
 
   def activation_badge(company)
-    tone = {
-      "operating" => "success",
-      "reactivation_opportunity" => "warning",
-      "first_operation_opportunity" => "info",
-      "low_signal" => "neutral"
-    }.fetch(company.activation_state, "neutral")
+    tone =
+      if company.operating?
+        "success"
+      elsif company.reactivation_opportunity?
+        "warning"
+      elsif company.first_operation_opportunity?
+        "info"
+      else
+        "neutral"
+      end
 
-    status_badge(company.activation_label, tone)
+    status_badge(Company.human_enum_name(:activation_state, company.activation_state), tone)
   end
 
   def risk_badge(risk_eligibility)
-    return status_badge("No Risk output", "neutral") unless risk_eligibility
+    return status_badge("Sin resultado de riesgo", "neutral") unless risk_eligibility
 
-    tone = {
-      "eligible" => "success",
-      "in_review" => "warning",
-      "not_eligible" => "danger"
-    }.fetch(risk_eligibility.status, "neutral")
+    tone =
+      if risk_eligibility.eligible?
+        "success"
+      elsif risk_eligibility.in_review?
+        "warning"
+      elsif risk_eligibility.not_eligible?
+        "danger"
+      else
+        "neutral"
+      end
 
-    status_badge(risk_eligibility.status.humanize, tone)
+    status_badge(RiskEligibility.human_enum_name(:status, risk_eligibility.status), tone)
   end
 
   def invoice_status_badge(invoice)
-    tone = {
-      "paid" => "success",
-      "pending" => "warning",
-      "overdue" => "danger"
-    }.fetch(invoice.status, "neutral")
+    tone =
+      if invoice.paid?
+        "success"
+      elsif invoice.pending?
+        "warning"
+      elsif invoice.overdue?
+        "danger"
+      else
+        "neutral"
+      end
 
-    status_badge(invoice.status.humanize, tone)
+    status_badge(Invoice.human_enum_name(:status, invoice.status), tone)
   end
 end

@@ -10,11 +10,11 @@ class SessionsController < ApplicationController
   end
 
   def failure
-    redirect_to login_path, alert: "Authentication failed. Please try again."
+    redirect_to login_path, alert: "No se pudo autenticar. Intenta nuevamente."
   end
 
   def destroy
     reset_session
-    redirect_to login_path, notice: "Signed out successfully."
+    redirect_to login_path, notice: "Sesión cerrada correctamente."
   end
 end

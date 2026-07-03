@@ -1,0 +1,224 @@
+<% month_start = Date.current.beginning_of_month %>
+<% month_end = Date.current.end_of_month %>
+
+<div class="page-header">
+  <div>
+    <p class="eyebrow">KAM dashboard</p>
+    <h1>Your portfolio</h1>
+    <p class="muted">
+      Focused on clients operated, financed amount, share of wallet, and expansion opportunities from SII data.
+    </p>
+  </div>
+  <%= link_to "View all companies", companies_path, class: "button" %>
+</div>
+
+<section class="grid grid-4">
+  <div class="card">
+    <div class="eyebrow">Operating clients</div>
+    <div class="metric-value"><%= @operating_companies.size %>/<%= @portfolio_count %></div>
+    <div class="metric-label"><%= percent_value(@operating_rate) %> operated in the last 30 days</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Financed amount</div>
+    <div class="metric-value"><%= clp_money(@financed_amount) %></div>
+    <div class="metric-label">Current month</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Share of wallet</div>
+    <div class="metric-value"><%= percent_value(@share_of_wallet) %></div>
+    <div class="metric-label">Financed by Xepelin / total SII-visible invoices</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Expansion opportunity</div>
+    <div class="metric-value"><%= clp_money(@expansion_opportunity) %></div>
+    <div class="metric-label">SII-visible amount not financed this month</div>
+  </div>
+</section>
+
+<section class="section grid grid-2">
+  <div class="card">
+    <div class="page-header">
+      <div>
+        <h2>Reactivation opportunities</h2>
+        <p class="muted">
+          Clients with recent SII activity but no recent Xepelin operation. This is a Growth action, not a risk status.
+        </p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>State</th>
+          <th>SOW</th>
+          <th>Opportunity</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @reactivation_opportunities.each do |company| %>
+          <tr>
+            <td>
+              <strong><%= company.legal_name %></strong><br>
+              <span class="muted"><%= company.tax_id %></span>
+            </td>
+            <td><%= activation_badge(company) %></td>
+            <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
+            <td><%= clp_money(company.expansion_opportunity(from: month_start, to: month_end)) %></td>
+            <td><%= link_to "Details", company_path(company) %></td>
+          </tr>
+        <% end %>
+        <% if @reactivation_opportunities.empty? %>
+          <tr>
+            <td colspan="5" class="muted">No reactivation opportunities for this period.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="page-header">
+      <div>
+        <h2>Collection blockers</h2>
+        <p class="muted">
+          Informational only: collections owns recovery, but overdue invoices can block future operations.
+        </p>
+      </div>
+      <%= link_to "View unpaid", invoices_unpaid_path %>
+    </div>
+
+    <div class="grid grid-2">
+      <div>
+        <div class="eyebrow">Unpaid invoices</div>
+        <div class="metric-value"><%= @unpaid_invoices.size %></div>
+      </div>
+      <div>
+        <div class="eyebrow">Overdue amount</div>
+        <div class="metric-value"><%= clp_money(@overdue_amount) %></div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Debtor</th>
+          <th>Due date</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @unpaid_invoices.first(5).each do |invoice| %>
+          <tr>
+            <td><%= link_to invoice.company.legal_name, company_path(invoice.company) %></td>
+            <td><%= link_to invoice.debtor.legal_name, debtor_path(invoice.debtor) %></td>
+            <td><%= invoice.due_date %></td>
+            <td><%= clp_money(invoice.amount) %></td>
+          </tr>
+        <% end %>
+        <% if @unpaid_invoices.empty? %>
+          <tr>
+            <td colspan="4" class="muted">No unpaid financed invoices.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section grid grid-2">
+  <div class="card">
+    <h2>Top clients by financed amount</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Financed</th>
+          <th>SOW</th>
+          <th>Next action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @top_financed_companies.each do |company| %>
+          <tr>
+            <td><%= link_to company.legal_name, company_path(company) %></td>
+            <td><%= clp_money(company.financed_amount(from: month_start, to: month_end)) %></td>
+            <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
+            <td><%= company.next_best_action %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Low SOW expansion ranking</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>SOW</th>
+          <th>SII volume</th>
+          <th>Opportunity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @low_sow_opportunities.each do |company| %>
+          <tr>
+            <td><%= link_to company.legal_name, company_path(company) %></td>
+            <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
+            <td><%= clp_money(company.sii_volume(from: month_start, to: month_end)) %></td>
+            <td><%= clp_money(company.expansion_opportunity(from: month_start, to: month_end)) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section card">
+  <h2>Risk team outputs</h2>
+  <p class="muted">
+    The KAM consumes these eligibility signals. Risk, Collections, and Fraud remain separate owner teams.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Debtor</th>
+        <th>Status</th>
+        <th>Risk type</th>
+        <th>Reason</th>
+        <th>Evaluated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @risk_constraints.each do |eligibility| %>
+        <tr>
+          <td><%= link_to eligibility.company.legal_name, company_path(eligibility.company) %></td>
+          <td>
+            <% if eligibility.debtor.present? %>
+              <%= link_to eligibility.debtor.legal_name, debtor_path(eligibility.debtor) %>
+            <% else %>
+              Company level
+            <% end %>
+          </td>
+          <td><%= risk_badge(eligibility) %></td>
+          <td><%= eligibility.risk_type.humanize %></td>
+          <td><%= eligibility.reason %></td>
+          <td><%= eligibility.evaluated_at.to_date %></td>
+        </tr>
+      <% end %>
+      <% if @risk_constraints.empty? %>
+        <tr>
+          <td colspan="6" class="muted">No eligibility constraints for this portfolio.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,140 @@
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Debtor detail</p>
+    <h1><%= @debtor.legal_name %></h1>
+    <p class="muted"><%= @debtor.tax_id %> · <%= @debtor.sector %></p>
+  </div>
+  <%= link_to "Back to companies", companies_path, class: "button button-secondary" %>
+</div>
+
+<section class="grid grid-4">
+  <div class="card">
+    <div class="eyebrow">Global Xepelin invoices</div>
+    <div class="metric-value"><%= @debtor.xepelin_invoice_count %></div>
+    <div class="metric-label">Across all KAM portfolios</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Global financed amount</div>
+    <div class="metric-value"><%= clp_money(@debtor.global_financed_amount) %></div>
+    <div class="metric-label">Across all Xepelin operations</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Open exposure</div>
+    <div class="metric-value"><%= clp_money(@debtor.open_exposure) %></div>
+    <div class="metric-label">Unpaid financed invoices</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Payment probability proxy</div>
+    <div class="metric-value">
+      <% if @debtor.on_time_payment_rate.present? %>
+        <%= percent_value(@debtor.on_time_payment_rate) %>
+      <% else %>
+        N/A
+      <% end %>
+    </div>
+    <div class="metric-label"><%= @debtor.payment_probability_label %> based on historical on-time payments</div>
+  </div>
+</section>
+
+<section class="section grid grid-2">
+  <div class="card">
+    <h2>Pricing in your portfolio</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Monthly rate</th>
+          <th>Approved limit</th>
+          <th>Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @pricing_agreements.each do |agreement| %>
+          <tr>
+            <td><%= link_to agreement.company.legal_name, company_path(agreement.company) %></td>
+            <td><%= percent_value(agreement.monthly_rate) %></td>
+            <td><%= clp_money(agreement.approved_limit) %></td>
+            <td><%= agreement.active? ? "Yes" : "No" %></td>
+          </tr>
+        <% end %>
+        <% if @pricing_agreements.empty? %>
+          <tr>
+            <td colspan="4" class="muted">No pricing agreements with companies in your portfolio.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Risk outputs in your portfolio</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Risk type</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @risk_eligibilities.each do |eligibility| %>
+          <tr>
+            <td><%= link_to eligibility.company.legal_name, company_path(eligibility.company) %></td>
+            <td><%= risk_badge(eligibility) %></td>
+            <td><%= eligibility.risk_type.humanize %></td>
+            <td><%= eligibility.reason %></td>
+          </tr>
+        <% end %>
+        <% if @risk_eligibilities.empty? %>
+          <tr>
+            <td colspan="4" class="muted">No Risk output for this debtor in your portfolio.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section card">
+  <h2>Invoices tied to your portfolio</h2>
+  <p class="muted">
+    Detailed invoice visibility is scoped to companies assigned to the logged-in KAM.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Invoice</th>
+        <th>Source</th>
+        <th>Amount</th>
+        <th>Issue date</th>
+        <th>Due date</th>
+        <th>Status</th>
+        <th>Paid on</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @portfolio_invoices.each do |invoice| %>
+        <tr>
+          <td><%= link_to invoice.company.legal_name, company_path(invoice.company) %></td>
+          <td><%= invoice.invoice_number %></td>
+          <td><%= invoice.source.humanize %></td>
+          <td><%= clp_money(invoice.amount) %></td>
+          <td><%= invoice.issue_date %></td>
+          <td><%= invoice.due_date %></td>
+          <td><%= invoice_status_badge(invoice) %></td>
+          <td><%= invoice.paid_on || "Pending" %></td>
+        </tr>
+      <% end %>
+      <% if @portfolio_invoices.empty? %>
+        <tr>
+          <td colspan="8" class="muted">No invoices tied to your assigned companies.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

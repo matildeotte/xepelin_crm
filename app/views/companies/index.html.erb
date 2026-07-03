@@ -1,0 +1,54 @@
+<% month_start = Date.current.beginning_of_month %>
+<% month_end = Date.current.end_of_month %>
+
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Portfolio</p>
+    <h1>Assigned companies</h1>
+    <p class="muted">
+      Companies are prioritized by operating state and current-month financed amount.
+    </p>
+  </div>
+  <%= link_to "Back to dashboard", root_path, class: "button button-secondary" %>
+</div>
+
+<section class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>State</th>
+        <th>Financed this month</th>
+        <th>SII volume</th>
+        <th>SOW</th>
+        <th>Risk output</th>
+        <th>Next action</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @companies.each do |company| %>
+        <tr>
+          <td>
+            <strong><%= company.legal_name %></strong><br>
+            <span class="muted"><%= company.tax_id %> · <%= company.sector %></span>
+          </td>
+          <td><%= activation_badge(company) %></td>
+          <td><%= clp_money(company.financed_amount(from: month_start, to: month_end)) %></td>
+          <td><%= clp_money(company.sii_volume(from: month_start, to: month_end)) %></td>
+          <td><%= percent_value(company.share_of_wallet(from: month_start, to: month_end)) %></td>
+          <td><%= risk_badge(company.latest_risk_eligibility) %></td>
+          <td><%= company.next_best_action %></td>
+          <td><%= link_to "Details", company_path(company) %></td>
+        </tr>
+      <% end %>
+      <% if @companies.empty? %>
+        <tr>
+          <td colspan="8" class="muted">
+            No companies assigned to this user. Seed or assign companies to the logged-in KAM.
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

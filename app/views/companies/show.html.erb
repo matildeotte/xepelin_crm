@@ -1,0 +1,271 @@
+<% month_start = @current_month_start %>
+<% month_end = @current_month_end %>
+<% health_score = @company.latest_health_score %>
+
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Company detail</p>
+    <h1><%= @company.legal_name %></h1>
+    <p class="muted">
+      <%= @company.tax_id %> · <%= @company.sector %> · Onboarded <%= @company.onboarded_on || "unknown" %>
+    </p>
+  </div>
+  <div>
+    <%= activation_badge(@company) %>
+    <%= risk_badge(@company.latest_risk_eligibility) %>
+  </div>
+</div>
+
+<section class="grid grid-4">
+  <div class="card">
+    <div class="eyebrow">Financed this month</div>
+    <div class="metric-value"><%= clp_money(@company.financed_amount(from: month_start, to: month_end)) %></div>
+    <div class="metric-label">KAM core KPI</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">SII-visible volume</div>
+    <div class="metric-value"><%= clp_money(@company.sii_volume(from: month_start, to: month_end)) %></div>
+    <div class="metric-label">Invoices seen through the client's SII connection</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Share of wallet</div>
+    <div class="metric-value"><%= percent_value(@company.share_of_wallet(from: month_start, to: month_end)) %></div>
+    <div class="metric-label">Xepelin financed / SII-visible volume</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Expansion opportunity</div>
+    <div class="metric-value"><%= clp_money(@company.expansion_opportunity(from: month_start, to: month_end)) %></div>
+    <div class="metric-label">Visible amount not financed this month</div>
+  </div>
+</section>
+
+<section class="section grid grid-3">
+  <div class="card">
+    <h3>Next best action</h3>
+    <p><%= @company.next_best_action %></p>
+    <p class="muted">
+      Last financed operation:
+      <strong><%= @company.last_financed_on || "No financed operation yet" %></strong>
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Debtor concentration</h3>
+    <div class="metric-value"><%= percent_value(@company.top_debtor_concentration) %></div>
+    <p class="muted">
+      Share of total visible volume concentrated in the largest debtor relationship.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Collections blocker</h3>
+    <div class="metric-value"><%= clp_money(@company.overdue_financed_amount) %></div>
+    <p class="muted">
+      Collections owns recovery. KAM uses this to understand whether the client can keep operating.
+    </p>
+  </div>
+</section>
+
+<section class="section grid grid-2">
+  <div class="card">
+    <h2>AI health summary</h2>
+    <% if health_score.present? %>
+      <div class="metric-value"><%= health_score.score %>/100</div>
+      <p><%= health_score.summary %></p>
+      <% if health_score.recommended_actions.present? %>
+        <ul>
+          <% health_score.recommended_actions.each do |action| %>
+            <li><%= action %></li>
+          <% end %>
+        </ul>
+      <% end %>
+    <% else %>
+      <p class="muted">
+        No health score generated yet. This is where the LLM output from Part 2 can be displayed.
+      </p>
+    <% end %>
+  </div>
+
+  <div class="card">
+    <h2>KAM notes</h2>
+    <%= form_with model: @company, local: true do |form| %>
+      <div class="form-row">
+        <%= form.label :notes, "Account notes" %>
+        <%= form.text_area :notes %>
+      </div>
+      <%= form.submit "Save notes" %>
+    <% end %>
+  </div>
+</section>
+
+<section class="section card">
+  <h2>Pricing and Risk by debtor relationship</h2>
+  <p class="muted">
+    Rates are defined at the company-debtor relationship level. Risk eligibility is an external output consumed by Commercial.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Debtor</th>
+        <th>Monthly rate</th>
+        <th>Approved limit</th>
+        <th>Risk output</th>
+        <th>Reason</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @pricing_agreements.each do |agreement| %>
+        <% eligibility = @risk_eligibilities.detect { |item| item.debtor_id == agreement.debtor_id } %>
+        <tr>
+          <td>
+            <strong><%= agreement.debtor.legal_name %></strong><br>
+            <span class="muted"><%= agreement.debtor.tax_id %></span>
+          </td>
+          <td><%= percent_value(agreement.monthly_rate) %></td>
+          <td><%= clp_money(agreement.approved_limit) %></td>
+          <td><%= risk_badge(eligibility) %></td>
+          <td><%= eligibility&.reason || "No restriction" %></td>
+          <td><%= link_to "Debtor detail", debtor_path(agreement.debtor) %></td>
+        </tr>
+      <% end %>
+      <% if @pricing_agreements.empty? %>
+        <tr>
+          <td colspan="6" class="muted">No pricing agreements for this company yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<section class="section card">
+  <h2>Financed invoices</h2>
+  <p class="muted">
+    These are invoices operated through Xepelin. Payment status is useful context, but it is not the KAM's main ownership area.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Debtor</th>
+        <th>Amount</th>
+        <th>Financed on</th>
+        <th>Due date</th>
+        <th>Status</th>
+        <th>Paid on</th>
+        <th>Moratory rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @financed_invoices.each do |invoice| %>
+        <tr>
+          <td><%= invoice.invoice_number %></td>
+          <td><%= link_to invoice.debtor.legal_name, debtor_path(invoice.debtor) %></td>
+          <td><%= clp_money(invoice.amount) %></td>
+          <td><%= invoice.financed_on %></td>
+          <td><%= invoice.due_date %></td>
+          <td><%= invoice_status_badge(invoice) %></td>
+          <td><%= invoice.paid_on || "Pending" %></td>
+          <td><%= percent_value(invoice.moratory_monthly_rate) %></td>
+        </tr>
+      <% end %>
+      <% if @financed_invoices.empty? %>
+        <tr>
+          <td colspan="8" class="muted">No financed invoices yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<section class="section card">
+  <h2>SII-visible invoices not financed by Xepelin</h2>
+  <p class="muted">
+    This is the core Growth opportunity: invoices observed from the client's SII scraper that were not operated with Xepelin.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Debtor</th>
+        <th>Amount</th>
+        <th>Issue date</th>
+        <th>Due date</th>
+        <th>Suggested action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @opportunity_invoices.each do |invoice| %>
+        <% eligibility = @risk_eligibilities.detect { |item| item.debtor_id == invoice.debtor_id } %>
+        <tr>
+          <td><%= invoice.invoice_number %></td>
+          <td><%= link_to invoice.debtor.legal_name, debtor_path(invoice.debtor) %></td>
+          <td><%= clp_money(invoice.amount) %></td>
+          <td><%= invoice.issue_date %></td>
+          <td><%= invoice.due_date %></td>
+          <td>
+            <% if eligibility&.not_eligible? %>
+              Wait for Risk: <%= eligibility.reason %>
+            <% elsif eligibility&.in_review? %>
+              Follow up with Risk before pitching.
+            <% else %>
+              Pitch financing for this debtor relationship.
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @opportunity_invoices.empty? %>
+        <tr>
+          <td colspan="6" class="muted">No SII-only invoices for this company.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<section class="section grid grid-2">
+  <div class="card">
+    <h2>Add interaction</h2>
+    <%= form_with model: [@company, @interaction], local: true do |form| %>
+      <div class="form-row">
+        <%= form.label :kind %>
+        <%= form.select :kind, [["Call", "call"], ["Email", "email"], ["WhatsApp", "whatsapp"], ["Note", "note"]] %>
+      </div>
+      <div class="form-row">
+        <%= form.label :summary %>
+        <%= form.text_area :summary, placeholder: "Example: Discussed financing opportunity for pending SII invoices." %>
+      </div>
+      <%= form.submit "Add interaction" %>
+    <% end %>
+  </div>
+
+  <div class="card">
+    <h2>Recent interactions</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Kind</th>
+          <th>Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @interactions.each do |interaction| %>
+          <tr>
+            <td><%= interaction.created_at.to_date %></td>
+            <td><%= interaction.kind.humanize %></td>
+            <td><%= interaction.summary %></td>
+          </tr>
+        <% end %>
+        <% if @interactions.empty? %>
+          <tr>
+            <td colspan="3" class="muted">No interactions yet.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Operational blockers</p>
+    <h1>Unpaid financed invoices</h1>
+    <p class="muted">
+      These invoices are owned by Collections, but they can affect whether a client can keep operating with Xepelin.
+    </p>
+  </div>
+  <%= link_to "Back to dashboard", root_path, class: "button button-secondary" %>
+</div>
+
+<section class="grid grid-3">
+  <div class="card">
+    <div class="eyebrow">Unpaid invoices</div>
+    <div class="metric-value"><%= @invoices.size %></div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Pending amount</div>
+    <div class="metric-value"><%= clp_money(@invoices.where(status: "pending").sum(:amount)) %></div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Overdue amount</div>
+    <div class="metric-value"><%= clp_money(@invoices.where(status: "overdue").sum(:amount)) %></div>
+  </div>
+</section>
+
+<section class="section card">
+  <table>
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Debtor</th>
+        <th>Invoice</th>
+        <th>Amount</th>
+        <th>Due date</th>
+        <th>Status</th>
+        <th>Days overdue</th>
+        <th>Suggested KAM action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @invoices.each do |invoice| %>
+        <tr>
+          <td><%= link_to invoice.company.legal_name, company_path(invoice.company) %></td>
+          <td><%= link_to invoice.debtor.legal_name, debtor_path(invoice.debtor) %></td>
+          <td><%= invoice.invoice_number %></td>
+          <td><%= clp_money(invoice.amount) %></td>
+          <td><%= invoice.due_date %></td>
+          <td><%= invoice_status_badge(invoice) %></td>
+          <td><%= invoice.days_overdue %></td>
+          <td>
+            <% if invoice.overdue? %>
+              Coordinate context with Collections before pitching a new operation.
+            <% else %>
+              Monitor with Collections; keep commercial cadence if Risk allows.
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @invoices.empty? %>
+        <tr>
+          <td colspan="8" class="muted">No unpaid financed invoices in your portfolio.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

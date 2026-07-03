@@ -1,6 +1,5 @@
 Payment.destroy_all
 RiskEligibility.destroy_all
-PricingAgreement.destroy_all
 HealthScore.destroy_all
 Interaction.destroy_all
 Invoice.destroy_all
@@ -72,14 +71,6 @@ companies = profiles.each_with_index.map do |profile, index|
   )
 
   company_debtors.each do |debtor|
-    PricingAgreement.create!(
-      company: company,
-      debtor: debtor,
-      monthly_rate: rand(1.1..3.4).round(2),
-      approved_limit: rand(20_000_000..120_000_000),
-      active: true
-    )
-
     RiskEligibility.create!(
       company: company,
       debtor: debtor,
@@ -178,18 +169,6 @@ companies = profiles.each_with_index.map do |profile, index|
     end
   end
 
-  HealthScore.create!(
-    company: company,
-    score: rand(45..92),
-    churn_risk: ["low", "medium", "high"].sample,
-    summary: "El cliente tiene actividad visible en SII. Priorizar conversaciones según SOW, relaciones con pagadores elegibles y cadencia operativa reciente.",
-    recommended_actions: [
-      "Revisar facturas solo SII con relaciones de pagadores elegibles.",
-      "Contactar al decisor con una oportunidad concreta de financiamiento.",
-      "Revisar resultado de riesgos antes de ofrecer facturas asociadas a pagadores revisados."
-    ]
-  )
-
   Interaction.create!(
     company: company,
     kind: Interaction.kinds.keys.sample,
@@ -210,7 +189,6 @@ end
   )
 
   debtor = debtors.sample
-  PricingAgreement.create!(company:, debtor:, monthly_rate: rand(1.2..2.9).round(2), approved_limit: rand(10_000_000..80_000_000))
 
   invoice = Invoice.create!(
     company: company,

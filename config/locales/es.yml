@@ -15,7 +15,6 @@ es:
       health_score: "Resumen de salud"
       interaction: "Interacción"
       invoice: "Factura"
-      pricing_agreement: "Condición comercial"
       risk_eligibility: "Evaluación de riesgo"
       user: "Usuario"
     attributes:
@@ -24,12 +23,12 @@ es:
         tax_id: "RUT"
         activation_states:
           operating: "Operando"
-          reactivation_opportunity: "Reactivar"
-          first_operation_opportunity: "Primera operación"
+          reactivation_opportunity: "Sin operación reciente"
+          first_operation_opportunity: "Sin primera operación"
           low_signal: "Baja señal"
         next_best_actions:
           review_risk: "Revisar resultado de Riesgo antes de ofrecer nuevas operaciones"
-          reactivate: "Contactar para reactivar: actividad SII reciente sin operación reciente con Xepelin"
+          reactivate: "Revisar oportunidad SII y priorizar contacto comercial"
           first_operation: "Ofrecer primera operación con Xepelin usando facturas SII recientes"
           expand_wallet_share: "Expandir participación de cartera: priorizar relaciones con pagadores elegibles"
           maintain_cadence: "Mantener cadencia y buscar operaciones de mayor tamaño"

@@ -39,64 +39,33 @@
   </div>
 </section>
 
-<section class="section grid grid-2">
-  <div class="card">
-    <h2>Pricing en tu cartera</h2>
-    <table>
-      <thead>
+<section class="section card">
+  <h2>Resultados de riesgos en tu cartera</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Empresa</th>
+        <th>Estado</th>
+        <th>Tipo de riesgo</th>
+        <th>Motivo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @risk_eligibilities.each do |eligibility| %>
         <tr>
-          <th>Empresa</th>
-          <th>Tasa mensual</th>
-          <th>Límite aprobado</th>
-          <th>Activo</th>
+          <td><%= link_to eligibility.company.legal_name, company_path(eligibility.company) %></td>
+          <td><%= risk_badge(eligibility) %></td>
+          <td><%= RiskEligibility.human_enum_name(:risk_type, eligibility.risk_type) %></td>
+          <td><%= eligibility.reason %></td>
         </tr>
-      </thead>
-      <tbody>
-        <% @pricing_agreements.each do |agreement| %>
-          <tr>
-            <td><%= link_to agreement.company.legal_name, company_path(agreement.company) %></td>
-            <td><%= percent_value(agreement.monthly_rate) %></td>
-            <td><%= clp_money(agreement.approved_limit) %></td>
-            <td><%= agreement.active? ? "Sí" : "No" %></td>
-          </tr>
-        <% end %>
-        <% if @pricing_agreements.empty? %>
-          <tr>
-            <td colspan="4" class="muted">No hay condiciones comerciales con empresas en tu cartera.</td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <h2>Resultados de riesgos en tu cartera</h2>
-    <table>
-      <thead>
+      <% end %>
+      <% if @risk_eligibilities.empty? %>
         <tr>
-          <th>Empresa</th>
-          <th>Estado</th>
-          <th>Tipo de riesgo</th>
-          <th>Motivo</th>
+          <td colspan="4" class="muted">No hay resultado de riesgos para este pagador en tu cartera.</td>
         </tr>
-      </thead>
-      <tbody>
-        <% @risk_eligibilities.each do |eligibility| %>
-          <tr>
-            <td><%= link_to eligibility.company.legal_name, company_path(eligibility.company) %></td>
-            <td><%= risk_badge(eligibility) %></td>
-            <td><%= RiskEligibility.human_enum_name(:risk_type, eligibility.risk_type) %></td>
-            <td><%= eligibility.reason %></td>
-          </tr>
-        <% end %>
-        <% if @risk_eligibilities.empty? %>
-          <tr>
-            <td colspan="4" class="muted">No hay resultado de riesgos para este pagador en tu cartera.</td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+      <% end %>
+    </tbody>
+  </table>
 </section>
 
 <section class="section card">

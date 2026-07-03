@@ -4,7 +4,6 @@ class Company < ApplicationRecord
   has_many :invoices, dependent: :destroy
   has_many :interactions, dependent: :destroy
   has_many :health_scores, dependent: :destroy
-  has_many :pricing_agreements, dependent: :destroy
   has_many :risk_eligibilities, dependent: :destroy
   has_many :debtors, -> { distinct }, through: :invoices
 

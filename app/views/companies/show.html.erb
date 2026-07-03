@@ -69,58 +69,34 @@
 </section>
 
 <section class="section card">
-    <h2>Resumen de salud AI</h2>
-    <% if @latest_health_score.present? %>
-      <div class="metric-value"><%= @latest_health_score.score %>/100</div>
-      <p><%= @latest_health_score.summary %></p>
-      <% if @latest_health_score.recommended_actions.present? %>
-        <ul>
-          <% @latest_health_score.recommended_actions.each do |action| %>
-            <li><%= action %></li>
-          <% end %>
-        </ul>
-      <% end %>
-    <% else %>
-      <p class="muted">
-        Aún no hay resumen de salud generado. Aquí se puede mostrar la salida del LLM de la parte 2.
-      </p>
-    <% end %>
-</section>
-
-<section class="section card">
-  <h2>Pricing y riesgo por relación con pagador</h2>
+  <h2>Resultado de riesgos por pagador</h2>
   <p class="muted">
-    Las tasas se definen a nivel empresa-pagador. La elegibilidad de riesgos es un resultado externo consumido por Comercial.
+    Riesgos define qué pagadores o facturas son elegibles. El KAM usa esta señal para priorizar oportunidades comerciales.
   </p>
   <table>
     <thead>
       <tr>
         <th>Pagador</th>
-        <th>Tasa mensual</th>
-          <th>Límite aprobado</th>
         <th>Resultado de riesgo</th>
         <th>Motivo</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      <% @pricing_agreements.each do |agreement| %>
-        <% eligibility = @risk_eligibilities.detect { |item| item.debtor_id == agreement.debtor_id } %>
+      <% @risk_eligibilities.relationship_level.each do |eligibility| %>
         <tr>
           <td>
-            <strong><%= agreement.debtor.legal_name %></strong><br>
-            <span class="muted"><%= agreement.debtor.tax_id %></span>
+            <strong><%= eligibility.debtor.legal_name %></strong><br>
+            <span class="muted"><%= eligibility.debtor.tax_id %></span>
           </td>
-          <td><%= percent_value(agreement.monthly_rate) %></td>
-          <td><%= clp_money(agreement.approved_limit) %></td>
           <td><%= risk_badge(eligibility) %></td>
           <td><%= eligibility&.reason || "Sin restricción" %></td>
-          <td><%= link_to "Detalle pagador", debtor_path(agreement.debtor) %></td>
+          <td><%= link_to "Detalle pagador", debtor_path(eligibility.debtor) %></td>
         </tr>
       <% end %>
-      <% if @pricing_agreements.empty? %>
+      <% if @risk_eligibilities.relationship_level.empty? %>
         <tr>
-          <td colspan="6" class="muted">Aún no hay condiciones comerciales para esta empresa.</td>
+          <td colspan="4" class="muted">Aún no hay resultados de riesgo por pagador para esta empresa.</td>
         </tr>
       <% end %>
     </tbody>

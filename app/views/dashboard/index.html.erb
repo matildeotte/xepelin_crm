@@ -42,9 +42,9 @@
   <div class="card">
     <div class="page-header">
       <div>
-        <h2>Oportunidades de reactivación</h2>
+        <h2>Oportunidades de crecimiento</h2>
         <p class="muted">
-          Clientes con actividad SII reciente pero sin operación Xepelin reciente. Es una acción Growth, no un estado de riesgo.
+          Clientes activos con facturas visibles en SII que aún no están siendo financiadas por Xepelin este mes.
         </p>
       </div>
     </div>
@@ -60,7 +60,7 @@
         </tr>
       </thead>
       <tbody>
-        <% @reactivation_opportunities.each do |company| %>
+        <% @growth_opportunities.each do |company| %>
           <tr>
             <td>
               <strong><%= company.legal_name %></strong><br>
@@ -72,9 +72,9 @@
             <td><%= link_to "Detalle", company_path(company) %></td>
           </tr>
         <% end %>
-        <% if @reactivation_opportunities.empty? %>
+        <% if @growth_opportunities.empty? %>
           <tr>
-            <td colspan="5" class="muted">No hay oportunidades de reactivación para este período.</td>
+            <td colspan="5" class="muted">No hay oportunidades de crecimiento para este período.</td>
           </tr>
         <% end %>
       </tbody>

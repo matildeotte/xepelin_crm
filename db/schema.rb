@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_02_000011) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_02_000012) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -93,19 +93,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000011) do
     t.index ["invoice_id"], name: "index_payments_on_invoice_id"
   end
 
-  create_table "pricing_agreements", force: :cascade do |t|
-    t.bigint "company_id", null: false
-    t.bigint "debtor_id", null: false
-    t.decimal "monthly_rate", precision: 5, scale: 2, null: false
-    t.decimal "approved_limit", precision: 14, scale: 2
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["company_id", "debtor_id"], name: "index_pricing_agreements_on_company_id_and_debtor_id", unique: true
-    t.index ["company_id"], name: "index_pricing_agreements_on_company_id"
-    t.index ["debtor_id"], name: "index_pricing_agreements_on_debtor_id"
-  end
-
   create_table "risk_eligibilities", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.bigint "debtor_id"
@@ -138,8 +125,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000011) do
   add_foreign_key "invoices", "companies"
   add_foreign_key "invoices", "debtors"
   add_foreign_key "payments", "invoices"
-  add_foreign_key "pricing_agreements", "companies"
-  add_foreign_key "pricing_agreements", "debtors"
   add_foreign_key "risk_eligibilities", "companies"
   add_foreign_key "risk_eligibilities", "debtors"
 end

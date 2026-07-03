@@ -21,9 +21,7 @@ class CompaniesController < ApplicationController
                                     .includes(:debtor)
                                     .order(issue_date: :desc)
 
-    @pricing_agreements = @company.pricing_agreements.includes(:debtor).order(:monthly_rate)
     @risk_eligibilities = @company.risk_eligibilities.includes(:debtor).order(evaluated_at: :desc)
-    @latest_health_score = @company.health_scores.order(created_at: :desc).first
     @latest_risk_eligibility = @company.risk_eligibilities.company_level.order(evaluated_at: :desc).first
     @overdue_financed_amount = @company.financed_invoices.overdue.sum(:amount)
     @interactions = @company.interactions.order(created_at: :desc)

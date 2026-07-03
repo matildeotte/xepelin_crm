@@ -15,8 +15,9 @@ class DashboardController < ApplicationController
     @unpaid_invoices = portfolio_invoices.xepelin.unpaid.includes(:company, :debtor).order(:due_date)
     @overdue_amount = @unpaid_invoices.overdue.sum(:amount)
 
-    @reactivation_opportunities = @companies
-      .select { |company| company.reactivation_opportunity? || company.first_operation_opportunity? }
+    @growth_opportunities = @companies
+      .select(&:operating?)
+      .select { |company| company.sii_volume(from: @current_month.begin, to: @current_month.end).positive? }
       .sort_by { |company| -company.expansion_opportunity(from: @current_month.begin, to: @current_month.end) }
       .first(10)
 

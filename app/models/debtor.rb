@@ -1,7 +1,6 @@
 class Debtor < ApplicationRecord
   has_many :invoices, dependent: :restrict_with_error
   has_many :companies, -> { distinct }, through: :invoices
-  has_many :pricing_agreements, dependent: :destroy
   has_many :risk_eligibilities, dependent: :destroy
 
   attribute :payment_probability, :integer

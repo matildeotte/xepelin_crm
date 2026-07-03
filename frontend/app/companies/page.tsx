@@ -6,7 +6,23 @@ import { ErrorState, LoadingState } from "@/components/AsyncState";
 import { StatusPill } from "@/components/StatusPill";
 import { formatClp, formatPercent } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
-import type { CompaniesResponse } from "@/lib/types";
+import type { CompaniesResponse, CompanySummary } from "@/lib/types";
+
+function HealthScoreCell({ company }: { company: CompanySummary }) {
+  if (!company.latest_health_score) {
+    return <StatusPill label="Pendiente AI" tone="neutral" />;
+  }
+
+  return (
+    <Group gap="xs">
+      <Text fw={700}>{company.latest_health_score.score}</Text>
+      <StatusPill
+        label={company.latest_health_score.churn_risk.label}
+        tone={company.latest_health_score.churn_risk.tone}
+      />
+    </Group>
+  );
+}
 
 export default function CompaniesPage() {
   const { data, error, loading } = useApiResource<CompaniesResponse>("/api/v1/companies");
@@ -22,21 +38,20 @@ export default function CompaniesPage() {
             Cartera
           </Text>
           <Title>Empresas asignadas</Title>
-          <Text c="dimmed">Priorizadas por estado de operación y monto financiado del mes actual.</Text>
+          <Text c="dimmed">Priorizadas por salud, Share of Wallet, oportunidad SII y capacidad real de operar.</Text>
         </div>
       </Group>
 
       <Card withBorder radius="lg">
-        <Table.ScrollContainer minWidth={980}>
+        <Table.ScrollContainer minWidth={1040}>
           <Table>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Empresa</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th>Financiado este mes</Table.Th>
-                <Table.Th>Volumen SII</Table.Th>
+                <Table.Th>Health Score AI</Table.Th>
                 <Table.Th>SOW</Table.Th>
-                <Table.Th>Riesgo</Table.Th>
+                <Table.Th>Oportunidad SII elegible</Table.Th>
+                <Table.Th>Estado de riesgo</Table.Th>
                 <Table.Th>Siguiente acción</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -52,11 +67,10 @@ export default function CompaniesPage() {
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <StatusPill label={company.activation_state.label} tone={company.activation_state.tone} />
+                    <HealthScoreCell company={company} />
                   </Table.Td>
-                  <Table.Td>{formatClp(company.metrics.financed_amount)}</Table.Td>
-                  <Table.Td>{formatClp(company.metrics.sii_volume)}</Table.Td>
                   <Table.Td>{formatPercent(company.metrics.share_of_wallet)}</Table.Td>
+                  <Table.Td>{formatClp(company.metrics.eligible_expansion_opportunity)}</Table.Td>
                   <Table.Td>
                     {company.latest_risk_eligibility ? (
                       <StatusPill

@@ -11,6 +11,7 @@ export type CompanyMetrics = {
   sii_volume: number;
   share_of_wallet: number;
   expansion_opportunity: number;
+  eligible_expansion_opportunity: number;
   top_debtor_concentration: number;
   last_financed_on: string | null;
 };
@@ -25,6 +26,7 @@ export type CompanySummary = {
   activation_state: LabeledValue;
   next_best_action: LabeledValue;
   latest_risk_eligibility: RiskEligibility | null;
+  latest_health_score: HealthScore | null;
   metrics: CompanyMetrics;
 };
 
@@ -94,22 +96,45 @@ export type Interaction = {
   kind: LabeledValue;
 };
 
+export type HealthScore = {
+  id: number;
+  score: number;
+  summary: string;
+  recommended_actions: string[];
+  created_at: string;
+  churn_risk: LabeledValue;
+};
+
+export type RiskUnlockedOpportunity = {
+  id: number;
+  company: CompanyLink;
+  debtor: DebtorLink;
+  available_amount: number;
+  invoice_count: number;
+  evaluated_at: string;
+  action: string;
+  secondary_action: string;
+};
+
 export type DashboardResponse = {
   metrics: {
     portfolio_count: number;
     operating_companies_count: number;
     operating_rate: number;
     financed_amount: number;
+    monthly_goal_amount: number;
+    monthly_goal_progress: number;
     sii_volume: number;
     share_of_wallet: number;
     expansion_opportunity: number;
+    eligible_expansion_pipeline: number;
     unpaid_invoices_count: number;
     overdue_amount: number;
   };
   growth_opportunities: CompanySummary[];
   top_financed_companies: CompanySummary[];
   low_sow_opportunities: CompanySummary[];
-  risk_constraints: RiskEligibility[];
+  risk_unlocked_opportunities: RiskUnlockedOpportunity[];
   unpaid_invoices: Invoice[];
 };
 

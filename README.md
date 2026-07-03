@@ -72,6 +72,12 @@ Start the Rails API:
 FRONTEND_URL=http://localhost:3001 bin/rails s -p 3000
 ```
 
+Optional monthly goal for the dashboard:
+
+```bash
+MONTHLY_FINANCING_GOAL_CLP=300000000
+```
+
 Start the Next frontend in another terminal:
 
 ```bash
@@ -97,9 +103,9 @@ The CRM is designed around the real KAM goal: increase operated clients and fina
 
 Key screens:
 
-- Dashboard: operating clients, financed amount, SOW, expansion opportunity, growth opportunities, and collection blockers.
-- Companies: assigned client list with activation state, SOW, Risk output, and next best action.
-- Company detail: financed invoices, SII-visible invoices not financed by Xepelin, Risk outputs, and interactions.
+- Dashboard: SOW, eligible expansion pipeline, operating clients, financed amount vs. goal, risk-unlocked opportunities, and collection blockers.
+- Companies: assigned client list prioritized by Health Score AI, SOW, eligible SII opportunity, Risk output, and next best action.
+- Company detail: financed invoices, SII-visible invoices not financed by Xepelin, Risk outputs, interactions, and simulation actions.
 - Debtor detail: global debtor behavior across Xepelin plus detailed invoices scoped to the logged-in KAM's portfolio.
 - Unpaid invoices: operational blockers owned by Collections but visible to KAMs because they may affect future operation.
 

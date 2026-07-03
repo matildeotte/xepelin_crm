@@ -3,6 +3,7 @@ module Api::V1::Serializable
 
   def serialize_company_summary(company, from: current_month.begin, to: current_month.end)
     latest_risk_eligibility = company.risk_eligibilities.company_level.order(evaluated_at: :desc).first
+    latest_health_score = company.health_scores.order(created_at: :desc).first
 
     {
       id: company.id,
@@ -14,6 +15,7 @@ module Api::V1::Serializable
       activation_state: serialize_company_activation_state(company),
       next_best_action: serialize_company_next_best_action(company),
       latest_risk_eligibility: serialize_risk_eligibility(latest_risk_eligibility),
+      latest_health_score: serialize_health_score(latest_health_score),
       metrics: serialize_company_metrics(company, from:, to:)
     }
   end
@@ -37,6 +39,7 @@ module Api::V1::Serializable
       sii_volume: company.sii_volume(from:, to:).to_f,
       share_of_wallet: company.share_of_wallet(from:, to:).to_f,
       expansion_opportunity: company.expansion_opportunity(from:, to:).to_f,
+      eligible_expansion_opportunity: eligible_expansion_opportunity(company, from:, to:).to_f,
       top_debtor_concentration: company.top_debtor_concentration.to_f,
       last_financed_on: serialize_date(company.last_financed_on)
     }
@@ -140,6 +143,23 @@ module Api::V1::Serializable
     }
   end
 
+  def serialize_health_score(health_score)
+    return nil unless health_score
+
+    {
+      id: health_score.id,
+      score: health_score.score,
+      summary: health_score.summary,
+      recommended_actions: health_score.recommended_actions || [],
+      created_at: serialize_date(health_score.created_at),
+      churn_risk: {
+        value: health_score.churn_risk,
+        label: HealthScore.human_enum_name(:churn_risk, health_score.churn_risk),
+        tone: churn_risk_tone(health_score)
+      }
+    }
+  end
+
   def serialize_company_link(company)
     {
       id: company.id,
@@ -180,11 +200,32 @@ module Api::V1::Serializable
     "neutral"
   end
 
+  def churn_risk_tone(health_score)
+    return "success" if health_score.low?
+    return "warning" if health_score.medium?
+    return "danger" if health_score.high?
+
+    "neutral"
+  end
+
   def suggested_invoice_action(eligibility)
     return "Esperar a riesgos: #{eligibility.reason}" if eligibility&.not_eligible?
     return "Hacer seguimiento con riesgos antes de ofrecer." if eligibility&.in_review?
 
     "Ofrecer financiamiento para esta relación con pagador."
+  end
+
+  def eligible_expansion_opportunity(company, from:, to:)
+    eligible_debtor_ids = company
+      .risk_eligibilities
+      .relationship_level
+      .eligible
+      .select(:debtor_id)
+
+    company
+      .opportunity_invoices
+      .where(debtor_id: eligible_debtor_ids, issue_date: from..to, due_date: current_day..)
+      .sum(:amount)
   end
 
   def serialize_date(value)

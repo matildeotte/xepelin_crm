@@ -96,7 +96,7 @@ export default function CompanyDetailPage() {
         <MetricCard label="Oportunidad de expansión" value={formatClp(company.metrics.expansion_opportunity)} />
       </SimpleGrid>
 
-      <SimpleGrid cols={{ base: 1, md: 3 }}>
+      <SimpleGrid cols={{ base: 1, md: 4 }}>
         <Card withBorder radius="lg">
           <Title order={3}>Siguiente mejor acción</Title>
           <Text mt="sm">{company.next_best_action.label}</Text>
@@ -109,6 +109,24 @@ export default function CompanyDetailPage() {
           value={formatPercent(company.metrics.top_debtor_concentration)}
           description="Porcentaje concentrado en el principal pagador"
         />
+        <Card withBorder radius="lg">
+          <Title order={3}>Health Score AI</Title>
+          {company.latest_health_score ? (
+            <Group mt="sm">
+              <Text fw={700} size="xl">
+                {company.latest_health_score.score}/100
+              </Text>
+              <StatusPill
+                label={company.latest_health_score.churn_risk.label}
+                tone={company.latest_health_score.churn_risk.tone}
+              />
+            </Group>
+          ) : (
+            <Text c="dimmed" mt="sm">
+              Pendiente de generación con Gemini.
+            </Text>
+          )}
+        </Card>
         <MetricCard label="Estado comercial" value={company.activation_state.label} />
       </SimpleGrid>
 
@@ -154,7 +172,7 @@ export default function CompanyDetailPage() {
         <Text c="dimmed" size="sm" mb="md">
           Oportunidad central de crecimiento sobre facturas observadas por el scraper SII.
         </Text>
-        <Table.ScrollContainer minWidth={900}>
+        <Table.ScrollContainer minWidth={1120}>
           <Table>
             <Table.Thead>
               <Table.Tr>
@@ -164,25 +182,35 @@ export default function CompanyDetailPage() {
                 <Table.Th>Emisión</Table.Th>
                 <Table.Th>Vencimiento</Table.Th>
                 <Table.Th>Acción sugerida</Table.Th>
+                <Table.Th>Operar</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {company.opportunity_invoices.map((invoice) => (
-                <Table.Tr key={invoice.id}>
-                  <Table.Td>{invoice.invoice_number}</Table.Td>
-                  <Table.Td>
-                    {invoice.debtor ? (
-                      <Anchor component={Link} href={`/debtors/${invoice.debtor.id}`} className="table-link">
-                        {invoice.debtor.legal_name}
-                      </Anchor>
-                    ) : null}
-                  </Table.Td>
-                  <Table.Td>{formatClp(invoice.amount)}</Table.Td>
-                  <Table.Td>{formatDate(invoice.issue_date)}</Table.Td>
-                  <Table.Td>{formatDate(invoice.due_date)}</Table.Td>
-                  <Table.Td>{invoice.suggested_action}</Table.Td>
-                </Table.Tr>
-              ))}
+              {company.opportunity_invoices.map((invoice) => {
+                const canOffer = invoice.suggested_action.startsWith("Ofrecer");
+
+                return (
+                  <Table.Tr key={invoice.id}>
+                    <Table.Td>{invoice.invoice_number}</Table.Td>
+                    <Table.Td>
+                      {invoice.debtor ? (
+                        <Anchor component={Link} href={`/debtors/${invoice.debtor.id}`} className="table-link">
+                          {invoice.debtor.legal_name}
+                        </Anchor>
+                      ) : null}
+                    </Table.Td>
+                    <Table.Td>{formatClp(invoice.amount)}</Table.Td>
+                    <Table.Td>{formatDate(invoice.issue_date)}</Table.Td>
+                    <Table.Td>{formatDate(invoice.due_date)}</Table.Td>
+                    <Table.Td>{invoice.suggested_action}</Table.Td>
+                    <Table.Td>
+                      <Button size="xs" disabled={!canOffer}>
+                        Pre-aprobar y enviar simulación
+                      </Button>
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>

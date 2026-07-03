@@ -10,6 +10,22 @@ import { formatClp, formatDate, formatPercent } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
 import type { CompanySummary, DashboardResponse } from "@/lib/types";
 
+function HealthScoreCell({ company }: { company: CompanySummary }) {
+  if (!company.latest_health_score) {
+    return <StatusPill label="Pendiente AI" tone="neutral" />;
+  }
+
+  return (
+    <Group gap="xs">
+      <Text fw={700}>{company.latest_health_score.score}</Text>
+      <StatusPill
+        label={company.latest_health_score.churn_risk.label}
+        tone={company.latest_health_score.churn_risk.tone}
+      />
+    </Group>
+  );
+}
+
 function CompanyRow({ company }: { company: CompanySummary }) {
   return (
     <Table.Tr>
@@ -24,9 +40,11 @@ function CompanyRow({ company }: { company: CompanySummary }) {
       <Table.Td>
         <StatusPill label={company.activation_state.label} tone={company.activation_state.tone} />
       </Table.Td>
-      <Table.Td>{formatClp(company.metrics.financed_amount)}</Table.Td>
+      <Table.Td>
+        <HealthScoreCell company={company} />
+      </Table.Td>
       <Table.Td>{formatPercent(company.metrics.share_of_wallet)}</Table.Td>
-      <Table.Td>{formatClp(company.metrics.expansion_opportunity)}</Table.Td>
+      <Table.Td>{formatClp(company.metrics.eligible_expansion_opportunity)}</Table.Td>
     </Table.Tr>
   );
 }
@@ -61,20 +79,24 @@ export default function DashboardPage() {
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
         <MetricCard
-          label="Clientes operando"
-          value={`${data.metrics.operating_companies_count}/${data.metrics.portfolio_count}`}
-          description={`${formatPercent(data.metrics.operating_rate)} operó en los últimos 30 días`}
-        />
-        <MetricCard label="Monto financiado" value={formatClp(data.metrics.financed_amount)} description="Mes actual" />
-        <MetricCard
-          label="Participación de cartera"
+          label="SOW promedio cartera"
           value={formatPercent(data.metrics.share_of_wallet)}
           description="Financiado por Xepelin / volumen visible en SII"
         />
         <MetricCard
-          label="Oportunidad de expansión"
-          value={formatClp(data.metrics.expansion_opportunity)}
-          description="Monto visible en SII no financiado"
+          label="Pipeline de expansión"
+          value={formatClp(data.metrics.eligible_expansion_pipeline)}
+          description="Facturas SII vigentes con pagador elegible por Riesgo"
+        />
+        <MetricCard
+          label="Clientes operando"
+          value={`${data.metrics.operating_companies_count}/${data.metrics.portfolio_count}`}
+          description={`${formatPercent(data.metrics.operating_rate)} operó en los últimos 30 días`}
+        />
+        <MetricCard
+          label="Monto financiado vs. meta"
+          value={formatClp(data.metrics.financed_amount)}
+          description={`${formatPercent(data.metrics.monthly_goal_progress)} de ${formatClp(data.metrics.monthly_goal_amount)}`}
         />
       </SimpleGrid>
 
@@ -82,17 +104,17 @@ export default function DashboardPage() {
         <Card withBorder radius="lg">
           <Title order={3}>Oportunidades de crecimiento</Title>
           <Text c="dimmed" size="sm" mb="md">
-            Clientes activos con facturas visibles en SII que aún no fueron financiadas por Xepelin.
+            Clientes activos con facturas SII elegibles para gatillar nuevas operaciones.
           </Text>
-          <Table.ScrollContainer minWidth={720}>
+          <Table.ScrollContainer minWidth={820}>
             <Table>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Empresa</Table.Th>
                   <Table.Th>Estado</Table.Th>
-                  <Table.Th>Financiado</Table.Th>
+                  <Table.Th>Health Score AI</Table.Th>
                   <Table.Th>SOW</Table.Th>
-                  <Table.Th>Oportunidad</Table.Th>
+                  <Table.Th>Pipeline elegible</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -111,7 +133,7 @@ export default function DashboardPage() {
           </Text>
           <SimpleGrid cols={2} mb="md">
             <MetricCard label="Facturas impagas" value={String(data.metrics.unpaid_invoices_count)} />
-            <MetricCard label="Monto vencido" value={formatClp(data.metrics.overdue_amount)} />
+            <MetricCard label="Monto en riesgo de bloqueo" value={formatClp(data.metrics.overdue_amount)} />
           </SimpleGrid>
           <Table.ScrollContainer minWidth={640}>
             <Table>
@@ -120,7 +142,7 @@ export default function DashboardPage() {
                   <Table.Th>Empresa</Table.Th>
                   <Table.Th>Pagador</Table.Th>
                   <Table.Th>Vencimiento</Table.Th>
-                  <Table.Th>Monto</Table.Th>
+                  <Table.Th>Monto en riesgo de bloqueo</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -182,31 +204,44 @@ export default function DashboardPage() {
         </Card>
 
         <Card withBorder radius="lg">
-          <Title order={3}>Resultados del equipo de riesgos</Title>
+          <Title order={3}>Nuevas líneas desbloqueadas por Riesgo</Title>
           <Text c="dimmed" size="sm" mb="md">
-            Señales externas que Comercial consume antes de ofrecer nuevas operaciones.
+            Combinaciones empresa-pagador con luz verde y monto visible en SII para ofrecer hoy.
           </Text>
-          <Table.ScrollContainer minWidth={760}>
+          <Table.ScrollContainer minWidth={900}>
             <Table>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Empresa</Table.Th>
-                  <Table.Th>Pagador</Table.Th>
-                  <Table.Th>Estado</Table.Th>
-                  <Table.Th>Tipo</Table.Th>
-                  <Table.Th>Evaluado</Table.Th>
+                  <Table.Th>Pagador aprobado</Table.Th>
+                  <Table.Th>Monto disponible SII</Table.Th>
+                  <Table.Th>Facturas</Table.Th>
+                  <Table.Th>Acción</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {data.risk_constraints.map((risk) => (
-                  <Table.Tr key={risk.id}>
-                    <Table.Td>{risk.company?.legal_name}</Table.Td>
-                    <Table.Td>{risk.debtor?.legal_name ?? "Nivel empresa"}</Table.Td>
+                {data.risk_unlocked_opportunities.map((opportunity) => (
+                  <Table.Tr key={opportunity.id}>
                     <Table.Td>
-                      <StatusPill label={risk.status.label} tone={risk.status.tone} />
+                      <Anchor component={Link} href={`/companies/${opportunity.company.id}`} className="table-link">
+                        {opportunity.company.legal_name}
+                      </Anchor>
                     </Table.Td>
-                    <Table.Td>{risk.risk_type.label}</Table.Td>
-                    <Table.Td>{formatDate(risk.evaluated_at)}</Table.Td>
+                    <Table.Td>
+                      <Anchor component={Link} href={`/debtors/${opportunity.debtor.id}`} className="table-link">
+                        {opportunity.debtor.legal_name}
+                      </Anchor>
+                    </Table.Td>
+                    <Table.Td>{formatClp(opportunity.available_amount)}</Table.Td>
+                    <Table.Td>{opportunity.invoice_count}</Table.Td>
+                    <Table.Td>
+                      <Group gap="xs">
+                        <Button size="xs">{opportunity.action}</Button>
+                        <Button size="xs" variant="light">
+                          {opportunity.secondary_action}
+                        </Button>
+                      </Group>
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>

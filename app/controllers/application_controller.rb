@@ -1,6 +1,4 @@
 class ApplicationController < ActionController::Base
-  helper_method :current_user, :current_day
-
   before_action :require_login
 
   private
@@ -14,6 +12,6 @@ class ApplicationController < ActionController::Base
   end
 
   def require_login
-    redirect_to login_path unless current_user
+    render json: { error: "unauthorized" }, status: :unauthorized unless current_user
   end
 end

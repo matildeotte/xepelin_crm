@@ -1,16 +1,21 @@
 Rails.application.routes.draw do
-  root "dashboard#index"
+  root to: redirect(ENV.fetch("FRONTEND_URL", "http://localhost:3001"))
 
-  get "login" => "sessions#new"
   get "auth/google_oauth2/callback" => "sessions#create"
   get "auth/failure" => "sessions#failure"
   delete "logout" => "sessions#destroy"
 
-  resources :companies, only: %i[index show] do
-    resources :interactions, only: [:create]
+  namespace :api do
+    namespace :v1 do
+      get "dashboard", to: "dashboard#show"
+      resource :session, only: :show
+
+      resources :companies, only: %i[index show] do
+        resources :interactions, only: :create
+      end
+
+      resources :debtors, only: :show
+      get "invoices/unpaid", to: "invoices#unpaid"
+    end
   end
-
-  resources :debtors, only: [:show]
-
-  get "invoices/unpaid" => "invoices#unpaid"
 end

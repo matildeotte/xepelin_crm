@@ -6,13 +6,10 @@ gem "rails", "~> 7.1"
 gem "pg"
 gem "puma"
 gem "bootsnap", require: false
-gem "sprockets-rails"
 
 # Auth
 gem "omniauth-google-oauth2"
 gem "omniauth-rails_csrf_protection"
-
-gem "jbuilder"
 
 group :development, :test do
   gem "faker"

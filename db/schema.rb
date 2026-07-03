@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_02_000010) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_02_000011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -20,7 +20,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_000010) do
     t.string "tax_id", null: false
     t.string "sector"
     t.datetime "sii_connected_at"
-    t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "activation_state", default: 3, null: false

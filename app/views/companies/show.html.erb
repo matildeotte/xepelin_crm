@@ -68,8 +68,7 @@
   </div>
 </section>
 
-<section class="section grid grid-2">
-  <div class="card">
+<section class="section card">
     <h2>Resumen de salud AI</h2>
     <% if @latest_health_score.present? %>
       <div class="metric-value"><%= @latest_health_score.score %>/100</div>
@@ -86,18 +85,6 @@
         Aún no hay resumen de salud generado. Aquí se puede mostrar la salida del LLM de la parte 2.
       </p>
     <% end %>
-  </div>
-
-  <div class="card">
-    <h2>Notas KAM</h2>
-    <%= form_with model: @company, local: true do |form| %>
-      <div class="form-row">
-        <%= form.label :notes, "Notas de la cuenta" %>
-        <%= form.text_area :notes %>
-      </div>
-      <%= form.submit "Guardar notas" %>
-    <% end %>
-  </div>
 </section>
 
 <section class="section card">

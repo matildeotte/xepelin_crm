@@ -30,24 +30,10 @@ class CompaniesController < ApplicationController
     @interaction = Interaction.new
   end
 
-  def update
-    @company = current_user.companies.find(params[:id])
-
-    if @company.update(company_params)
-      redirect_to @company, notice: "Empresa actualizada correctamente."
-    else
-      render :show, status: :unprocessable_entity
-    end
-  end
-
   private
 
   def set_current_month
     @current_month_start = current_day.beginning_of_month
     @current_month_end = current_day.end_of_month
-  end
-
-  def company_params
-    params.require(:company).permit(:notes)
   end
 end

@@ -22,7 +22,6 @@ es:
       company:
         legal_name: "Razón social"
         tax_id: "RUT"
-        notes: "Notas"
         activation_states:
           operating: "Operando"
           reactivation_opportunity: "Reactivar"

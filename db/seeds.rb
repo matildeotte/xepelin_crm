@@ -52,22 +52,13 @@ profiles = [
   :collection_blocker
 ]
 
-profile_labels = {
-  operating_high_sow: "operando con SOW alto",
-  operating_low_sow: "operando con SOW bajo",
-  reactivation: "oportunidad de reactivación",
-  first_operation: "oportunidad de primera operación",
-  collection_blocker: "bloqueo por cobranza"
-}
-
 companies = profiles.each_with_index.map do |profile, index|
   company = Company.create!(
     user: primary_kam,
     legal_name: "#{Faker::Company.name} Ltda",
     tax_id: tax_id(index + 1),
     sector: sectors.sample,
-    sii_connected_at: rand(20..500).days.ago,
-    notes: "Cuenta demo con comportamiento #{profile_labels.fetch(profile)}."
+    sii_connected_at: rand(20..500).days.ago
   )
 
   company_debtors = debtors.sample(3)

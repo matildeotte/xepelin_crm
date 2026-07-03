@@ -6,7 +6,6 @@ class CreateCompanies < ActiveRecord::Migration[7.1]
       t.string :tax_id, null: false
       t.string :sector
       t.datetime :sii_connected_at
-      t.text :notes
 
       t.timestamps
     end

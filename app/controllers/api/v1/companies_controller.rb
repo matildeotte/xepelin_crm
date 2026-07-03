@@ -1,9 +1,10 @@
 class Api::V1::CompaniesController < Api::V1::BaseController
   def index
-    companies = current_user.companies.includes(:invoices, :risk_eligibilities).sort_by do |company|
+    companies = current_user.companies.includes(:health_scores, :invoices, :risk_eligibilities).sort_by do |company|
       [
-        company.operating? ? 0 : 1,
-        -company.financed_amount(from: current_month.begin, to: current_month.end)
+        company.health_scores.max_by(&:created_at)&.score || 101,
+        -eligible_expansion_opportunity(company, from: current_month.begin, to: current_month.end),
+        company.risk_eligibilities.company_level.max_by(&:evaluated_at)&.not_eligible? ? 1 : 0
       ]
     end
 

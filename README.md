@@ -47,6 +47,20 @@ DEMO_USER_EMAIL=matildeotte@gmail.com bin/rails db:seed
 
 This matters because the dashboard only shows companies assigned to the logged-in KAM. If you seed with a different email, the app may log you in correctly but show an empty portfolio.
 
+## Gemini Health Scores
+
+The app uses Gemini text generation to persist one `HealthScore` per company:
+
+- `health_score`: number from `0` to `100`.
+- `churn_risk`: `low`, `medium`, or `high`.
+- `summary`: short explanation for the KAM.
+- `recommended_actions`: concrete commercial actions.
+
+
+```bash
+LIMIT=5 bin/rails health_scores:generate
+```
+
 ## Frontend Setup
 
 Install frontend dependencies:
@@ -56,11 +70,6 @@ cd frontend
 npm install
 ```
 
-Optional local env file:
-
-```bash
-cp .env.example .env.local
-```
 
 By default, the frontend runs at `http://localhost:3001` and proxies `/api/*` requests to Rails at `http://localhost:3000`.
 
@@ -89,12 +98,6 @@ Open:
 
 ```text
 http://localhost:3001
-```
-
-Open Rails console:
-
-```bash
-bin/rails console
 ```
 
 ## Demo Narrative

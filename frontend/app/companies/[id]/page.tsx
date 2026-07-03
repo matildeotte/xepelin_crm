@@ -112,15 +112,25 @@ export default function CompanyDetailPage() {
         <Card withBorder radius="lg">
           <Title order={3}>Health Score AI</Title>
           {company.latest_health_score ? (
-            <Group mt="sm">
-              <Text fw={700} size="xl">
-                {company.latest_health_score.score}/100
-              </Text>
-              <StatusPill
-                label={company.latest_health_score.churn_risk.label}
-                tone={company.latest_health_score.churn_risk.tone}
-              />
-            </Group>
+            <Stack mt="sm" gap="xs">
+              <Group>
+                <Text fw={700} size="xl">
+                  {company.latest_health_score.score}/100
+                </Text>
+                <StatusPill
+                  label={company.latest_health_score.churn_risk.label}
+                  tone={company.latest_health_score.churn_risk.tone}
+                />
+              </Group>
+              <Text size="sm">{company.latest_health_score.summary}</Text>
+              <Stack gap={4}>
+                {company.latest_health_score.recommended_actions.map((action) => (
+                  <Text key={action} size="sm" c="dimmed">
+                    {action}
+                  </Text>
+                ))}
+              </Stack>
+            </Stack>
           ) : (
             <Text c="dimmed" mt="sm">
               Pendiente de generación con Gemini.

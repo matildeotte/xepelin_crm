@@ -7,6 +7,10 @@ Debtor.destroy_all
 Company.destroy_all
 User.destroy_all
 
+seed = ENV.fetch("SEED_RANDOM", "1234").to_i
+srand(seed)
+Faker::Config.random = Random.new(seed)
+
 def tax_id(sequence)
   body = (76_000_000 + sequence).to_s
   "#{body}-#{sequence % 10}"
@@ -61,6 +65,7 @@ companies = profiles.each_with_index.map do |profile, index|
   )
 
   company_debtors = debtors.sample(3)
+  eligible_growth_debtor = company_debtors.first
 
   RiskEligibility.create!(
     company: company,
@@ -71,12 +76,14 @@ companies = profiles.each_with_index.map do |profile, index|
   )
 
   company_debtors.each do |debtor|
+    eligible_growth_relationship = debtor == eligible_growth_debtor
+
     RiskEligibility.create!(
       company: company,
       debtor: debtor,
-      status: ["eligible", "eligible", "eligible", "in_review", "not_eligible"].sample,
-      risk_type: ["none", "none", "credit", "fraud", "operational"].sample,
-      reason: "Elegibilidad a nivel relación entregada por el equipo de riesgos.",
+      status: eligible_growth_relationship ? "eligible" : ["eligible", "in_review", "not_eligible"].sample,
+      risk_type: eligible_growth_relationship ? "none" : ["none", "credit", "fraud", "operational"].sample,
+      reason: eligible_growth_relationship ? "Pagador aprobado por Riesgo para nuevas operaciones comerciales." : "Elegibilidad a nivel relación entregada por el equipo de riesgos.",
       evaluated_at: rand(1..12).days.ago
     )
   end
@@ -100,8 +107,8 @@ companies = profiles.each_with_index.map do |profile, index|
     end
 
   monthly_visible_count.times do |invoice_index|
-    debtor = company_debtors.sample
     source = invoice_index < monthly_financed_count ? "xepelin" : "sii_only"
+    debtor = source == "sii_only" ? eligible_growth_debtor : company_debtors.sample
     issue_date = rand(0..24).days.ago.to_date
     due_date = issue_date + rand(20..60).days
     status = "pending"

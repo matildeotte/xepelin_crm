@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Anchor, Card, Group, Stack, Table, Text, Title } from "@mantine/core";
 import { ErrorState, LoadingState } from "@/components/AsyncState";
 import { StatusPill } from "@/components/StatusPill";
+import { AppNavigation } from "@/components/AppNavigation";
 import { formatClp, formatPercent } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
 import type { CompaniesResponse, CompanySummary } from "@/lib/types";
@@ -31,14 +32,15 @@ export default function CompaniesPage() {
   if (error || !data) return <ErrorState message={error ?? "No hay empresas disponibles."} />;
 
   return (
-    <Stack gap="xl">
+    <AppNavigation>
+      <Stack gap="xl">
       <Group justify="space-between">
         <div>
           <Text size="sm" tt="uppercase" c="dimmed" fw={700}>
             Cartera
           </Text>
           <Title>Empresas asignadas</Title>
-          <Text c="dimmed">Priorizadas por salud, Share of Wallet, oportunidad SII y capacidad real de operar.</Text>
+          <Text c="dimmed">Priorizadas por mayor oportunidad SII elegible, estado de riesgo, salud AI y SOW.</Text>
         </div>
       </Group>
 
@@ -88,6 +90,7 @@ export default function CompaniesPage() {
           </Table>
         </Table.ScrollContainer>
       </Card>
-    </Stack>
+      </Stack>
+    </AppNavigation>
   );
 }

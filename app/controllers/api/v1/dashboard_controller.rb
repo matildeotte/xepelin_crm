@@ -5,6 +5,7 @@ class Api::V1::DashboardController < Api::V1::BaseController
     financed_amount = portfolio_invoices.xepelin.where(financed_on: current_month).sum(:amount)
     sii_volume = portfolio_invoices.where(issue_date: current_month).sum(:amount)
     unpaid_invoices = portfolio_invoices.xepelin.unpaid.includes(:company, :debtor, :payments).order(:due_date)
+    collection_blocker_amount = unpaid_invoices.sum(:amount)
     overdue_amount = unpaid_invoices.overdue.sum(:amount)
     risk_unlocked_opportunities = unlocked_opportunities_by_risk
 
@@ -21,13 +22,12 @@ class Api::V1::DashboardController < Api::V1::BaseController
         expansion_opportunity: [sii_volume - financed_amount, 0].max.to_f,
         eligible_expansion_pipeline: risk_unlocked_opportunities.sum { |opportunity| opportunity[:available_amount] }.to_f,
         unpaid_invoices_count: unpaid_invoices.size,
+        collection_blocker_amount: collection_blocker_amount.to_f,
         overdue_amount: overdue_amount.to_f
       },
-      growth_opportunities: growth_opportunities(companies),
       top_financed_companies: top_financed_companies(companies),
-      low_sow_opportunities: low_sow_opportunities(companies),
       risk_unlocked_opportunities: risk_unlocked_opportunities,
-      unpaid_invoices: unpaid_invoices.first(5).map { |invoice| serialize_invoice(invoice, include_company: true) }
+      unpaid_invoices: unpaid_invoices.map { |invoice| serialize_invoice(invoice, include_company: true) }
     }
   end
 
@@ -41,31 +41,9 @@ class Api::V1::DashboardController < Api::V1::BaseController
     BigDecimal(ENV.fetch("MONTHLY_FINANCING_GOAL_CLP", "300000000"))
   end
 
-  def growth_opportunities(companies)
-    companies
-      .select(&:operating?)
-      .select { |company| company.sii_volume(from: current_month.begin, to: current_month.end).positive? }
-      .sort_by { |company| -eligible_expansion_opportunity(company, from: current_month.begin, to: current_month.end) }
-      .first(10)
-      .map { |company| serialize_company_summary(company) }
-  end
-
   def top_financed_companies(companies)
     companies
       .sort_by { |company| -company.financed_amount(from: current_month.begin, to: current_month.end) }
-      .first(10)
-      .map { |company| serialize_company_summary(company) }
-  end
-
-  def low_sow_opportunities(companies)
-    companies
-      .select { |company| company.sii_volume(from: current_month.begin, to: current_month.end).positive? }
-      .sort_by do |company|
-        [
-          company.share_of_wallet(from: current_month.begin, to: current_month.end),
-          -company.expansion_opportunity(from: current_month.begin, to: current_month.end)
-        ]
-      end
       .first(10)
       .map { |company| serialize_company_summary(company) }
   end

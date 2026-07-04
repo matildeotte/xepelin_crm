@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Anchor, Card, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { ErrorState, LoadingState } from "@/components/AsyncState";
+import { AppNavigation } from "@/components/AppNavigation";
 import { MetricCard } from "@/components/MetricCard";
 import { StatusPill } from "@/components/StatusPill";
 import { formatClp, formatDate, formatPercent } from "@/lib/format";
@@ -47,7 +48,8 @@ export default function DebtorDetailPage() {
   const debtor = data.debtor;
 
   return (
-    <Stack gap="xl">
+    <AppNavigation>
+      <Stack gap="xl">
       <div>
         <Text size="sm" tt="uppercase" c="dimmed" fw={700}>
           Detalle del pagador
@@ -122,6 +124,7 @@ export default function DebtorDetailPage() {
           </Table>
         </Table.ScrollContainer>
       </Card>
-    </Stack>
+      </Stack>
+    </AppNavigation>
   );
 }

@@ -1,10 +1,14 @@
 class Api::V1::CompaniesController < Api::V1::BaseController
   def index
     companies = current_user.companies.includes(:health_scores, :invoices, :risk_eligibilities).sort_by do |company|
+      latest_risk = company.risk_eligibilities.company_level.max_by(&:evaluated_at)
+      latest_score = company.health_scores.max_by(&:created_at)&.score
+
       [
-        company.health_scores.max_by(&:created_at)&.score || 101,
         -eligible_expansion_opportunity(company, from: current_month.begin, to: current_month.end),
-        company.risk_eligibilities.company_level.max_by(&:evaluated_at)&.not_eligible? ? 1 : 0
+        risk_priority(latest_risk),
+        -(latest_score || 0),
+        -company.share_of_wallet(from: current_month.begin, to: current_month.end)
       ]
     end
 
@@ -20,5 +24,15 @@ class Api::V1::CompaniesController < Api::V1::BaseController
         { value: kind, label: Interaction.human_enum_name(:kind, kind) }
       end
     }
+  end
+
+  private
+
+  def risk_priority(risk_eligibility)
+    return 0 if risk_eligibility&.eligible?
+    return 1 if risk_eligibility&.in_review?
+    return 2 if risk_eligibility&.not_eligible?
+
+    3
   end
 end

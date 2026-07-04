@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Anchor, Card, Stack, Table, Text, Title } from "@mantine/core";
 import { ErrorState, LoadingState } from "@/components/AsyncState";
+import { AppNavigation } from "@/components/AppNavigation";
 import { StatusPill } from "@/components/StatusPill";
 import { formatClp, formatDate, formatPercent } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
@@ -15,7 +16,8 @@ export default function UnpaidInvoicesPage() {
   if (error || !data) return <ErrorState message={error ?? "No se pudieron cargar las facturas."} />;
 
   return (
-    <Stack gap="xl">
+    <AppNavigation>
+      <Stack gap="xl">
       <div>
         <Text size="sm" tt="uppercase" c="dimmed" fw={700}>
           Cobranza como contexto
@@ -72,6 +74,7 @@ export default function UnpaidInvoicesPage() {
           </Table>
         </Table.ScrollContainer>
       </Card>
-    </Stack>
+      </Stack>
+    </AppNavigation>
   );
 }

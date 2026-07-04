@@ -37,6 +37,31 @@ a {
   padding: 1.5rem 0 3rem;
 }
 
+.login-shell {
+  min-height: 100vh;
+  padding: 4rem clamp(1.25rem, 5vw, 5rem);
+  display: flex;
+  align-items: center;
+}
+
+.login-grid {
+  width: min(520px, 100%);
+  margin: 0 auto;
+}
+
+.login-title {
+  max-width: 620px;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.login-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+}
+
 .table-link {
   color: #364fc7;
   font-weight: 600;

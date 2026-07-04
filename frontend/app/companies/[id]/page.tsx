@@ -17,6 +17,7 @@ import {
   Title
 } from "@mantine/core";
 import { ErrorState, LoadingState } from "@/components/AsyncState";
+import { AppNavigation } from "@/components/AppNavigation";
 import { MetricCard } from "@/components/MetricCard";
 import { StatusPill } from "@/components/StatusPill";
 import { apiPost } from "@/lib/api";
@@ -67,7 +68,8 @@ export default function CompanyDetailPage() {
   }
 
   return (
-    <Stack gap="xl">
+    <AppNavigation>
+      <Stack gap="xl">
       <Group justify="space-between" align="flex-start">
         <div>
           <Text size="sm" tt="uppercase" c="dimmed" fw={700}>
@@ -309,6 +311,7 @@ export default function CompanyDetailPage() {
           </Table>
         </Card>
       </SimpleGrid>
-    </Stack>
+      </Stack>
+    </AppNavigation>
   );
 }

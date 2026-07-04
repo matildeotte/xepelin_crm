@@ -129,11 +129,10 @@ export type DashboardResponse = {
     expansion_opportunity: number;
     eligible_expansion_pipeline: number;
     unpaid_invoices_count: number;
+    collection_blocker_amount: number;
     overdue_amount: number;
   };
-  growth_opportunities: CompanySummary[];
   top_financed_companies: CompanySummary[];
-  low_sow_opportunities: CompanySummary[];
   risk_unlocked_opportunities: RiskUnlockedOpportunity[];
   unpaid_invoices: Invoice[];
 };

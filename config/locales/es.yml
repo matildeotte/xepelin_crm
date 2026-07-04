@@ -40,9 +40,9 @@ es:
           low: "Baja"
       health_score:
         churn_risks:
-          low: "Bajo"
-          medium: "Medio"
-          high: "Alto"
+          low: "Riesgo bajo"
+          medium: "Riesgo medio"
+          high: "Riesgo alto"
       interaction:
         kind: "Tipo"
         summary: "Resumen"

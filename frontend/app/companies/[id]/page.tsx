@@ -98,6 +98,18 @@ export default function CompanyDetailPage() {
         <MetricCard label="Oportunidad de expansión" value={formatClp(company.metrics.expansion_opportunity)} />
       </SimpleGrid>
 
+      <Card withBorder radius="lg">
+        <Title order={3}>Saldo pendiente con Xepelin</Title>
+        <Text c="dimmed" size="sm" mt="xs">
+          Monto que la empresa debe por facturas financiadas aún impagas.
+        </Text>
+        <SimpleGrid cols={{ base: 1, sm: 3 }} mt="md">
+          <MetricCard label="Total pendiente" value={formatClp(company.metrics.outstanding_balance)} />
+          <MetricCard label="Vencido" value={formatClp(company.metrics.overdue_balance)} />
+          <MetricCard label="Por vencer" value={formatClp(company.metrics.pending_balance)} />
+        </SimpleGrid>
+      </Card>
+
       <SimpleGrid cols={{ base: 1, md: 4 }}>
         <Card withBorder radius="lg">
           <Title order={3}>Siguiente mejor acción</Title>

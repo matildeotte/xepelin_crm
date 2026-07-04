@@ -52,6 +52,18 @@ class Company < ApplicationRecord
     financed_invoices.maximum(:financed_on)
   end
 
+  def outstanding_balance
+    financed_invoices.unpaid.sum(:amount)
+  end
+
+  def overdue_balance
+    financed_invoices.overdue.sum(:amount)
+  end
+
+  def pending_balance
+    financed_invoices.pending.sum(:amount)
+  end
+
   def top_debtor_concentration
     total = invoices.sum(:amount)
     return 0 if total.zero?

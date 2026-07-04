@@ -7,7 +7,7 @@ import { ErrorState, LoadingState } from "@/components/AsyncState";
 import { AppNavigation } from "@/components/AppNavigation";
 import { MetricCard } from "@/components/MetricCard";
 import { StatusPill } from "@/components/StatusPill";
-import { formatClp, formatDate, formatPercent } from "@/lib/format";
+import { formatClp, formatDate } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
 import type { DebtorResponse, Invoice } from "@/lib/types";
 
@@ -24,8 +24,8 @@ function InvoiceRows({ invoices }: { invoices: Invoice[] }) {
             ) : null}
           </Table.Td>
           <Table.Td>{invoice.invoice_number}</Table.Td>
-          <Table.Td>{invoice.source.label}</Table.Td>
           <Table.Td>{formatClp(invoice.amount)}</Table.Td>
+          <Table.Td>{formatDate(invoice.financed_on)}</Table.Td>
           <Table.Td>{formatDate(invoice.issue_date)}</Table.Td>
           <Table.Td>{formatDate(invoice.due_date)}</Table.Td>
           <Table.Td>
@@ -60,16 +60,22 @@ export default function DebtorDetailPage() {
         </Text>
       </div>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-        <MetricCard label="Facturas Xepelin globales" value={String(debtor.metrics.xepelin_invoice_count)} />
-        <MetricCard label="Monto financiado global" value={formatClp(debtor.metrics.global_financed_amount)} />
-        <MetricCard label="Exposición abierta" value={formatClp(debtor.metrics.open_exposure)} />
-        <MetricCard
-          label="Proxy de pago a tiempo"
-          value={debtor.metrics.on_time_payment_rate === null ? "N/A" : formatPercent(debtor.metrics.on_time_payment_rate)}
-          description={`${debtor.payment_probability.label} según pagos históricos`}
-        />
-      </SimpleGrid>
+      <Card withBorder radius="lg">
+        <Title order={3}>Saldo pendiente con Xepelin</Title>
+        <Text c="dimmed" size="sm" mt="xs">
+          Deuda del pagador en empresas de tu cartera por facturas financiadas impagas.
+        </Text>
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mt="md">
+          <MetricCard label="Total pendiente" value={formatClp(debtor.metrics.outstanding_balance)} />
+          <MetricCard label="Vencido" value={formatClp(debtor.metrics.overdue_balance)} />
+          <MetricCard label="Por vencer" value={formatClp(debtor.metrics.pending_balance)} />
+          <MetricCard
+            label="Facturas Xepelin impagas"
+            value={String(debtor.metrics.unpaid_xepelin_invoice_count)}
+            description="Solo facturas financiadas impagas en tu cartera"
+          />
+        </SimpleGrid>
+      </Card>
 
       <Card withBorder radius="lg">
         <Title order={3}>Resultados de riesgos en tu cartera</Title>
@@ -100,9 +106,9 @@ export default function DebtorDetailPage() {
       </Card>
 
       <Card withBorder radius="lg">
-        <Title order={3}>Facturas vinculadas a tu cartera</Title>
+        <Title order={3}>Facturas financiadas con Xepelin</Title>
         <Text c="dimmed" size="sm" mb="md">
-          Visibilidad limitada a empresas asignadas al KAM logueado.
+          Solo facturas que Xepelin financió en empresas de tu cartera. Las visibles en SII se revisan en el detalle de cada empresa.
         </Text>
         <Table.ScrollContainer minWidth={960}>
           <Table>
@@ -110,8 +116,8 @@ export default function DebtorDetailPage() {
               <Table.Tr>
                 <Table.Th>Empresa</Table.Th>
                 <Table.Th>Factura</Table.Th>
-                <Table.Th>Fuente</Table.Th>
                 <Table.Th>Monto</Table.Th>
+                <Table.Th>Financiada</Table.Th>
                 <Table.Th>Emisión</Table.Th>
                 <Table.Th>Vencimiento</Table.Th>
                 <Table.Th>Estado</Table.Th>

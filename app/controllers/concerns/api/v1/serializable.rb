@@ -41,7 +41,10 @@ module Api::V1::Serializable
       expansion_opportunity: company.expansion_opportunity(from:, to:).to_f,
       eligible_expansion_opportunity: eligible_expansion_opportunity(company, from:, to:).to_f,
       top_debtor_concentration: company.top_debtor_concentration.to_f,
-      last_financed_on: serialize_date(company.last_financed_on)
+      last_financed_on: serialize_date(company.last_financed_on),
+      outstanding_balance: company.outstanding_balance.to_f,
+      overdue_balance: company.overdue_balance.to_f,
+      pending_balance: company.pending_balance.to_f
     }
   end
 
@@ -60,21 +63,17 @@ module Api::V1::Serializable
     }
   end
 
-  def serialize_debtor(debtor)
+  def serialize_debtor(debtor, company_ids:)
     {
       id: debtor.id,
       legal_name: debtor.legal_name,
       tax_id: debtor.tax_id,
       sector: debtor.sector,
-      payment_probability: {
-        value: debtor.payment_probability,
-        label: debtor.payment_probability_label
-      },
       metrics: {
-        xepelin_invoice_count: debtor.xepelin_invoice_count,
-        global_financed_amount: debtor.global_financed_amount.to_f,
-        open_exposure: debtor.open_exposure.to_f,
-        on_time_payment_rate: debtor.on_time_payment_rate&.to_f
+        outstanding_balance: debtor.portfolio_outstanding_balance(company_ids).to_f,
+        overdue_balance: debtor.portfolio_overdue_balance(company_ids).to_f,
+        pending_balance: debtor.portfolio_pending_balance(company_ids).to_f,
+        unpaid_xepelin_invoice_count: debtor.portfolio_unpaid_xepelin_count(company_ids)
       }
     }
   end

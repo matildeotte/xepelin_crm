@@ -14,6 +14,9 @@ export type CompanyMetrics = {
   eligible_expansion_opportunity: number;
   top_debtor_concentration: number;
   last_financed_on: string | null;
+  outstanding_balance: number;
+  overdue_balance: number;
+  pending_balance: number;
 };
 
 export type CompanySummary = {
@@ -51,12 +54,11 @@ export type DebtorLink = {
 
 export type Debtor = DebtorLink & {
   sector: string;
-  payment_probability: LabeledValue;
   metrics: {
-    xepelin_invoice_count: number;
-    global_financed_amount: number;
-    open_exposure: number;
-    on_time_payment_rate: number | null;
+    outstanding_balance: number;
+    overdue_balance: number;
+    pending_balance: number;
+    unpaid_xepelin_invoice_count: number;
   };
 };
 
@@ -149,7 +151,6 @@ export type CompanyResponse = {
 export type DebtorResponse = {
   debtor: Debtor;
   portfolio_invoices: Invoice[];
-  global_xepelin_invoices: Invoice[];
   risk_eligibilities: RiskEligibility[];
 };
 

@@ -19,3 +19,7 @@ export function formatDate(value: string | null | undefined): string {
     day: "2-digit"
   }).format(new Date(value));
 }
+
+export function formatDateDash(value: string | null | undefined): string {
+  return formatDate(value).replace(/\//g, "-");
+}

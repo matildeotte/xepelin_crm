@@ -1,19 +1,63 @@
 "use client";
 
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { Anchor, Button, Card, Group, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { ErrorState, LoadingState } from "@/components/AsyncState";
 import { MetricCard } from "@/components/MetricCard";
-import { formatClp, formatDate, formatPercent } from "@/lib/format";
+import { formatClp, formatDateDash, formatPercent } from "@/lib/format";
 import { useApiResource } from "@/lib/useApiResource";
-import type { DashboardResponse } from "@/lib/types";
+import type { DashboardResponse, Invoice } from "@/lib/types";
 import { AppNavigation } from "@/components/AppNavigation";
+
+type CollectionBlockerGroup = {
+  company: NonNullable<Invoice["company"]>;
+  invoices: Invoice[];
+  amount: number;
+};
+
+function collectionBlockerGroups(invoices: Invoice[]): CollectionBlockerGroup[] {
+  const groups = new Map<number, CollectionBlockerGroup>();
+
+  invoices.forEach((invoice) => {
+    if (!invoice.company) return;
+
+    const current = groups.get(invoice.company.id) ?? {
+      company: invoice.company,
+      invoices: [],
+      amount: 0
+    };
+
+    current.invoices.push(invoice);
+    current.amount += invoice.amount;
+    groups.set(invoice.company.id, current);
+  });
+
+  return Array.from(groups.values()).sort((a, b) => b.amount - a.amount);
+}
 
 export default function DashboardPage() {
   const { data, error, loading } = useApiResource<DashboardResponse>("/api/v1/dashboard");
+  const [expandedCompanyIds, setExpandedCompanyIds] = useState<Set<number>>(new Set());
 
   if (loading) return <LoadingState />;
   if (error || !data) return <ErrorState message={error ?? "No hay datos disponibles."} />;
+
+  const collectionGroups = collectionBlockerGroups(data.unpaid_invoices);
+
+  function toggleCompany(companyId: number) {
+    setExpandedCompanyIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+
+      if (nextIds.has(companyId)) {
+        nextIds.delete(companyId);
+      } else {
+        nextIds.add(companyId);
+      }
+
+      return nextIds;
+    });
+  }
 
   return (
     <AppNavigation>
@@ -109,36 +153,48 @@ export default function DashboardPage() {
             <MetricCard label="Facturas impagas" value={String(data.metrics.unpaid_invoices_count)} />
             <MetricCard label="Monto en riesgo de bloqueo" value={formatClp(data.metrics.collection_blocker_amount)} />
           </SimpleGrid>
-          <Table.ScrollContainer minWidth={640}>
+          <Table.ScrollContainer minWidth={680}>
             <Table>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Empresa</Table.Th>
-                  <Table.Th>Pagador</Table.Th>
-                  <Table.Th>Vencimiento</Table.Th>
+                  <Table.Th>Facturas impagas</Table.Th>
                   <Table.Th>Monto en riesgo de bloqueo</Table.Th>
+                  <Table.Th>Detalle</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {data.unpaid_invoices.map((invoice) => (
-                  <Table.Tr key={invoice.id}>
-                    <Table.Td>
-                      {invoice.company ? (
-                        <Anchor component={Link} href={`/companies/${invoice.company.id}`} className="table-link">
-                          {invoice.company.legal_name}
+                {collectionGroups.map((group) => (
+                  <Fragment key={group.company.id}>
+                    <Table.Tr>
+                      <Table.Td>
+                        <Anchor component={Link} href={`/companies/${group.company.id}`} className="table-link">
+                          {group.company.legal_name}
                         </Anchor>
-                      ) : null}
-                    </Table.Td>
-                    <Table.Td>
-                      {invoice.debtor ? (
-                        <Anchor component={Link} href={`/debtors/${invoice.debtor.id}`} className="table-link">
-                          {invoice.debtor.legal_name}
-                        </Anchor>
-                      ) : null}
-                    </Table.Td>
-                    <Table.Td>{formatDate(invoice.due_date)}</Table.Td>
-                    <Table.Td>{formatClp(invoice.amount)}</Table.Td>
-                  </Table.Tr>
+                      </Table.Td>
+                      <Table.Td>{group.invoices.length}</Table.Td>
+                      <Table.Td>{formatClp(group.amount)}</Table.Td>
+                      <Table.Td>
+                        <Button size="xs" variant="subtle" onClick={() => toggleCompany(group.company.id)}>
+                          {expandedCompanyIds.has(group.company.id) ? "▾ Ocultar" : "▸ Ver facturas"}
+                        </Button>
+                      </Table.Td>
+                    </Table.Tr>
+                    {expandedCompanyIds.has(group.company.id) ? (
+                      <Table.Tr>
+                        <Table.Td colSpan={4}>
+                          <Stack gap={4}>
+                            {group.invoices.map((invoice) => (
+                              <Text key={invoice.id} size="sm" c="dimmed">
+                                Factura N°{invoice.invoice_number} - Monto: {formatClp(invoice.amount)} - Vence:{" "}
+                                {formatDateDash(invoice.due_date)}
+                              </Text>
+                            ))}
+                          </Stack>
+                        </Table.Td>
+                      </Table.Tr>
+                    ) : null}
+                  </Fragment>
                 ))}
               </Table.Tbody>
             </Table>

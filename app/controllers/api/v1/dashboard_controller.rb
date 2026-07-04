@@ -43,6 +43,7 @@ class Api::V1::DashboardController < Api::V1::BaseController
 
   def top_financed_companies(companies)
     companies
+      .select { |company| company.financed_amount(from: current_month.begin, to: current_month.end).positive? }
       .sort_by { |company| -company.financed_amount(from: current_month.begin, to: current_month.end) }
       .first(10)
       .map { |company| serialize_company_summary(company) }

@@ -18,6 +18,8 @@
 /.bundle
 /vendor/bundle
 
+/config/master.key
+
 .env
 .env.*
 

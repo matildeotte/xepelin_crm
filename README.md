@@ -2,13 +2,13 @@
 
 CRM para priorización comercial de una cartera KAM en Xepelin.
 
-El producto está separado en un backend Rails API y un frontend Next.js + Mantine dentro del mismo repo. El foco es ayudar al KAM a entender:
+El producto está separado en un backend Rails API y un frontend Next.js + Mantine dentro del mismo repositorio. El foco es ayudar al KAM a entender:
 
 - Cuántos clientes asignados están operando.
 - Cuánto monto se ha financiado.
 - Share of Wallet (SOW): monto financiado por Xepelin vs. volumen visible en SII.
 - Oportunidades de crecimiento en clientes activos.
-- Outputs de elegibilidad entregados por Riesgos.
+- Resultados de elegibilidad entregados por Riesgos.
 - Bloqueos de cobranza como contexto para continuidad operacional.
 
 Rails no renderiza vistas ERB para el producto. Solo expone `/api/v1/*`, maneja Google OAuth/logout y redirige `/` al frontend Next.
@@ -18,117 +18,86 @@ Rails no renderiza vistas ERB para el producto. Solo expone `/api/v1/*`, maneja 
 - Ruby `3.2.2`
 - Rails `7.2.x`
 - PostgreSQL
-- Google OAuth via `omniauth-google-oauth2`
-- Next.js + Mantine in `frontend/`
-- Synthetic data via `faker`
+- Google OAuth con `omniauth-google-oauth2`
+- Next.js + Mantine en `frontend/`
+- Datos sintéticos con `faker`
 
-## First-Time Setup Backend
+## Configuración inicial del backend
 
-From the project folder:
+Desde la carpeta del proyecto:
 
 ```bash
 bundle install
 ```
 
-## Database Setup
+## Base de datos
 
-Create and migrate the database:
+Crear y migrar la base de datos:
 
 ```bash
 bin/rails db:create
 bin/rails db:migrate
 ```
 
-Load demo data and assign the main KAM portfolio to the same email you will use with Google login:
+Cargar datos de demo y asignar la cartera principal al mismo email que usarás con Google:
 
 ```bash
-DEMO_USER_EMAIL=matildeotte@gmail.com bin/rails db:seed
+DEMO_USER_EMAIL=tu_email@gmail.com bin/rails db:seed
 ```
 
-This matters because the dashboard only shows companies assigned to the logged-in KAM. If you seed with a different email, the app may log you in correctly but show an empty portfolio.
+Esto importa porque el dashboard solo muestra empresas asignadas al KAM logueado. Si haces seed con otro email, la app puede autenticarte bien pero mostrar una cartera vacía.
 
-## Gemini Health Scores
+## Health Scores con Gemini
 
-The app uses Gemini text generation to persist one `HealthScore` per company:
+La app usa generación de texto con Gemini para persistir un `HealthScore` por empresa:
 
-- `health_score`: number from `0` to `100`.
-- `churn_risk`: `low`, `medium`, or `high`.
-- `summary`: short explanation for the KAM.
-- `recommended_actions`: concrete commercial actions.
+- `health_score`: número entre `0` y `100`.
+- `churn_risk`: `low`, `medium` o `high`.
+- `summary`: explicación breve para el KAM.
+- `recommended_actions`: acciones comerciales concretas.
 
+Generar scores:
 
 ```bash
 LIMIT=5 bin/rails health_scores:generate
 ```
 
-## Frontend Setup
+Opciones útiles: `COMPANY_ID`, `USER_EMAIL`, `FORCE=true`, `SLEEP_SECONDS`.
 
-Install frontend dependencies:
+## Configuración del frontend
+
+Instalar dependencias:
 
 ```bash
 cd frontend
 npm install
 ```
 
+Por defecto, el frontend corre en `http://localhost:3001` y hace proxy de las peticiones `/api/*` hacia Rails en `http://localhost:3000`.
 
-By default, the frontend runs at `http://localhost:3001` and proxies `/api/*` requests to Rails at `http://localhost:3000`.
+## Levantar la app
 
-## Run The App
-
-Start the Rails API:
+Iniciar la API Rails:
 
 ```bash
 FRONTEND_URL=http://localhost:3001 bin/rails s -p 3000
 ```
 
-Optional monthly goal for the dashboard:
+Meta mensual opcional para el dashboard:
 
 ```bash
 MONTHLY_FINANCING_GOAL_CLP=300000000
 ```
 
-Start the Next frontend in another terminal:
+Iniciar el frontend Next en otra terminal:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open:
+Abrir:
 
 ```text
 http://localhost:3001
 ```
-
-## Demo Narrative
-
-The CRM is designed around the real KAM goal: increase operated clients and financed amount.
-
-Key screens:
-
-- Dashboard: SOW, eligible expansion pipeline, operating clients, financed amount vs. goal, risk-unlocked opportunities, and collection blockers.
-- Companies: assigned client list prioritized by Health Score AI, SOW, eligible SII opportunity, Risk output, and next best action.
-- Company detail: financed invoices, SII-visible invoices not financed by Xepelin, Risk outputs, interactions, and simulation actions.
-- Debtor detail: global debtor behavior across Xepelin plus detailed invoices scoped to the logged-in KAM's portfolio.
-- Unpaid invoices: operational blockers owned by Collections but visible to KAMs because they may affect future operation.
-
-## API Endpoints
-
-The frontend consumes JSON from Rails under `/api/v1`:
-
-- `GET /api/v1/session`
-- `GET /api/v1/dashboard`
-- `GET /api/v1/companies`
-- `GET /api/v1/companies/:id`
-- `POST /api/v1/companies/:company_id/interactions`
-- `GET /api/v1/debtors/:id`
-- `GET /api/v1/invoices/unpaid`
-
-## Domain Notes
-
-- `Company` is the Xepelin client managed by the KAM.
-- `Debtor` is the payer of the invoice.
-- `Invoice.source = xepelin` means the invoice was financed by Xepelin.
-- `Invoice.source = sii_only` means the invoice was seen through the client's SII scraper but was not financed by Xepelin.
-- `RiskEligibility` stores the output from Risk. The CRM consumes it; it does not calculate credit, operational, or fraud risk.
-- Collection status is informational for the KAM. Collections owns recovery, but overdue invoices can block the client from continuing to operate.

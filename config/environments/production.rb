@@ -28,11 +28,19 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
-  # config.assume_ssl = true
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
+
+  config.session_store :cookie_store,
+    key: "_xepelin_crm_session",
+    secure: true,
+    same_site: :none,
+    httponly: true
+
+  config.hosts << /.*\.onrender\.com/
+  config.hosts << ENV["RAILS_PUBLIC_URL"].delete_prefix("https://").delete_prefix("http://") if ENV["RAILS_PUBLIC_URL"].present?
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }

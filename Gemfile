@@ -21,3 +21,5 @@ group :development do
 end
 
 gem "human_enum_name", "~> 0.1.0"
+
+gem "rack-cors", "~> 3.0"

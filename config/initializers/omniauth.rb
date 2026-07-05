@@ -10,3 +10,7 @@ end
 
 OmniAuth.config.allowed_request_methods = %i[get post]
 OmniAuth.config.silence_get_warning = true
+
+if ENV["RAILS_PUBLIC_URL"].present?
+  OmniAuth.config.full_host = ENV["RAILS_PUBLIC_URL"]
+end

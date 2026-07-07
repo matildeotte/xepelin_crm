@@ -24,7 +24,7 @@ Rails no renderiza vistas ERB para el producto. Solo expone `/api/v1/*`, maneja 
 
 ## Configuración inicial del backend
 
-En cd crear un archivo master.key con el valor indicado en las diapositivas.
+En la carpeta config crear un archivo master.key con el valor indicado en las diapositivas.
 
 Desde la carpeta del proyecto:
 
@@ -106,4 +106,6 @@ http://localhost:3001
 
 ## Deploy en producción
 
-Guía paso a paso para Render: [DEPLOY.md](DEPLOY.md)
+```text
+https://xepelin-crm-web.onrender.com/
+```
